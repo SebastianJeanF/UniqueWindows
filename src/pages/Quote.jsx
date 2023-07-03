@@ -11,7 +11,8 @@ import {
 	useMemo,
 } from 'react';
 import img1 from '../assets/custom/IMG_5162.jpg';
-// import jsPDF from 'jspdf';
+
+import customWindowImg from '../assets/quote/questionMark.png';
 import widthImg from '../assets/quote/measure-width-windows.png';
 import heightImg from '../assets/quote/measure-height-windows.png';
 
@@ -36,7 +37,7 @@ import {
 	TrashIcon,
 	InformationCircleIcon,
 } from '@heroicons/react/24/outline';
-
+import { IoMdPhotos } from 'react-icons/io';
 import { QuoteSwiperContext, QuoteRoomsContext, QuoteWindowContext } from '../context/Context';
 import { createClient } from 'contentful';
 import { createClient as createAuthClient } from 'contentful-management';
@@ -603,28 +604,31 @@ function WindowType({ data, setAvailableFrameTypes }) {
 		setCurrent(temp);
 	}
 
-	const listItems = data.map((item, index) => (
+	const listItems = [
+		...data.map((item, index) => (
+			<div
+				key={index}
+				onClick={() => change(index)}
+				className={` ${
+					current[index] ? 'selected ' : ' hover:drop-shadow-xl cursor-pointer'
+				} transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
+				<img className='h-24' src={item.fields.image.fields.file.url} />
+				<div className='text-textPrimary'>{item.fields.title}</div>
+			</div>
+		)),
+
+		// Custom Item
 		<div
-			key={index}
-			onClick={() => change(index)}
-			className={` ${
-				current[index] ? 'selected ' : ' hover:drop-shadow-xl cursor-pointer'
-			} transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
-			<img className='h-24' src={item.fields.image.fields.file.url} />
-			<div className='text-textPrimary'>{item.fields.title}</div>
-		</div>
-	));
-	// listItems.push(
-	// 	<div
-	// 		key={index}
-	// 		onClick={() => change(index)}
-	// 		className={` ${
-	// 			current[index] ? 'selected ' : ' hover:drop-shadow-xl cursor-pointer'
-	// 		} transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
-	// 		<img className='h-24' src={item.fields.image.fields.file.url} />
-	// 		<div className='text-textPrimary'>{item.fields.title}</div>
-	// 	</div>
-	// );
+			key='custom'
+			onClick={() => handleCustomItem()} // Define the onClick handler for the custom item
+			className={`custom-item hover:drop-shadow-xl cursor-pointer transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
+			{/* Custom item content */}
+			{/* You can customize the content of the custom item based on your requirements */}
+			<img className='h-24' src={customWindowImg} />
+			<div className='text-textPrimary'>Custom Item</div>
+		</div>,
+	];
+
 	return (
 		<div id='Type' className='my-10'>
 			<div className='flex flex-row'>
@@ -752,6 +756,91 @@ function Measurements() {
 	);
 }
 
+function FileUploadForm() {
+	const [selectedFiles, setSelectedFiles] = useState([]);
+	const [dragging, setDragging] = useState(false);
+
+	const handleFileChange = (event) => {
+		const files = event.target.files;
+		const selectedFilesArray = Array.from(files);
+		setSelectedFiles((prevSelectedFiles) => [...prevSelectedFiles, ...selectedFilesArray]);
+	};
+
+	const handleDragOver = (event) => {
+		event.preventDefault();
+		setDragging(true);
+	};
+
+	const handleDragLeave = () => {
+		setDragging(false);
+	};
+
+	const handleDrop = (event) => {
+		event.preventDefault();
+		const files = event.dataTransfer.files;
+		const selectedFilesArray = Array.from(files);
+		setSelectedFiles((prevSelectedFiles) => [...prevSelectedFiles, ...selectedFilesArray]);
+		setDragging(false);
+	};
+
+	const handleFileDelete = (index) => {
+		const updatedFiles = [...selectedFiles];
+		updatedFiles.splice(index, 1);
+		setSelectedFiles(updatedFiles);
+	};
+
+	return (
+		<form>
+			<div
+				className={`mt-4 p-4 border-2 border-dashed ${dragging ? 'bg-gray-100' : 'bg-white'}`}
+				onDragOver={handleDragOver}
+				onDragLeave={handleDragLeave}
+				onDrop={handleDrop}>
+				<label htmlFor='photos' className='mb-2'></label>
+				<input
+					type='file'
+					id='photos'
+					name='photos'
+					multiple
+					onChange={handleFileChange}
+					className='hidden'
+				/>
+				<div>
+					<IoMdPhotos></IoMdPhotos>
+					<button
+						type='button'
+						className='bg-blue-500 text-white rounded px-4 py-2 mb-4'
+						onClick={() => document.getElementById('photos').click()}>
+						Browse Files
+					</button>
+				</div>
+				{selectedFiles.length > 0 && <p className='mb-2'>Selected Files: {selectedFiles.length}</p>}
+				<div className='flex flex-wrap gap-4'>
+					{selectedFiles.map((file, index) => (
+						<div key={index} className='w-1/4'>
+							<img
+								src={URL.createObjectURL(file)}
+								alt={`Selected File ${index}`}
+								className='w-full h-auto rounded'
+							/>
+							<p className='mt-2 text-center'>{file.name}</p>
+							<button
+								type='button'
+								className='text-red-500 underline mt-1'
+								onClick={() => handleFileDelete(index)}>
+								Delete
+							</button>
+						</div>
+					))}
+				</div>
+			</div>
+			<button type='submit' className='mt-4 bg-blue-500 text-white rounded px-4 py-2'>
+				Submit
+			</button>
+		</form>
+	);
+}
+
 const ProjectPhoto = () => {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
@@ -775,7 +864,7 @@ const ProjectPhoto = () => {
 
 	return (
 		<div id='Photo' className='my-10'>
-			<div className=' text-3xl'>Photo for Project</div>
+			<div className=' text-3xl'>Photo(s) for Project</div>
 			<div className='text-textPrimary'>
 				Upload at least one picture of where you plan on installing the window
 			</div>
@@ -806,6 +895,12 @@ const ProjectPhoto = () => {
 							multiple
 						/>
 					</div>
+					{/* <form>
+						<label for='photos'>Select Photos:</label>
+						<input type='file' id='photos' name='photos' multiple />
+						<button type='submit'>Submit</button>
+					</form> */}
+					<FileUploadForm></FileUploadForm>
 				</div>
 			</motion.div>
 			<div className='mt-5 flex justify-evenly'></div>
