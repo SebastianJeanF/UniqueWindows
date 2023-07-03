@@ -1,0 +1,96 @@
+.swiper-button-prev,
+.swiper-button-next {
+	/* Font & Text */
+
+	font-size: 14px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 400;
+	letter-spacing: normal;
+	line-height: 20px;
+	text-decoration: none solid rgb(80, 80, 80);
+	text-align: center;
+	text-indent: 0px;
+	text-transform: none;
+	vertical-align: baseline;
+	white-space: normal;
+	word-spacing: 0px;
+
+	/* Color & Background */
+	background-attachment: scroll;
+	background-color: rgba(0, 0, 0, 0);
+	background-image: none;
+	background-position: 0% 0%;
+	background-repeat: repeat;
+	color: rgb(255, 255, 255);
+
+	/* Box */
+	height: 55px;
+	width: 60px;
+	border: 0px none rgb(80, 80, 80);
+	border-top: 0px none rgb(80, 80, 80);
+	border-right: 0px none rgb(80, 80, 80);
+	border-bottom: 0px none rgb(80, 80, 80);
+	border-left: 0px none rgb(80, 80, 80);
+	margin: -29px 10px 0px;
+	padding: 0px;
+	max-height: none;
+	min-height: 0px;
+	max-width: none;
+	min-width: 0px;
+
+	/* Positioning */
+	position: absolute;
+	top: 300px;
+	bottom: 273.984px;
+	right: 1965px;
+	left: 0px;
+	float: none;
+	display: block;
+	clear: none;
+	z-index: 10;
+
+	/* List */
+	list-style-image: none;
+	list-style-type: none;
+	list-style-position: outside;
+
+	/* Table */
+	border-collapse: separate;
+	border-spacing: 0px 0px;
+	caption-side: top;
+	empty-cells: show;
+	table-layout: auto;
+
+	/* Miscellaneous */
+	overflow: hidden;
+	cursor: pointer;
+	visibility: visible;
+
+	/* Effects */
+	transform: none;
+	transition: all 0.3s ease-in-out 0s;
+	outline: rgb(80, 80, 80) dashed 0px;
+}
+.swiper-pagination-bullet-active {
+	background-color: #dcdcdc !important;
+	padding: 5px;
+}
+.swiper-pagination-bullet {
+	background-color: #b5b5b5 !important;
+}
+
+.swiper-button-prev,
+.swiper-button-next {
+	position: absolute;
+	top: var(--swiper-navigation-top-offset, 50%);
+	width: calc(var(--swiper-navigation-size) / 44 * 27);
+	height: var(--swiper-navigation-size);
+	margin-top: calc(0px - (var(--swiper-navigation-size) / 2));
+	z-index: 10;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--swiper-navigation-color, var(--swiper-theme-color));
+}

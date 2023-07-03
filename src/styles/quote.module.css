@@ -1,0 +1,10 @@
+.quoteAccordion:focus{
+  z-index: 0;
+  border-color: white!important;
+  outline: 0;
+  box-shadow: white!important;
+}
+
+.quoteAccordion{
+  padding: 100px;
+}
