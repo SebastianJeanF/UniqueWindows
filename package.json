@@ -16,6 +16,7 @@
 		"axios": "^1.4.0",
 		"contentful": "^10.1.6",
 		"contentful-management": "^10.38.3",
+		"firebase": "^9.23.0",
 		"framer-motion": "^10.12.16",
 		"mdb-ui-kit": "^6.1.0",
 		"postcss": "^8.4.21",

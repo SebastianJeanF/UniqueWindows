@@ -22,6 +22,8 @@ function Context({ children }) {
 		photo: null,
 		quantity: 1,
 		price: 0,
+		custom: false,
+		reference: false,
 	};
 	let roomTemplate = {
 		name: 'Blank',
@@ -157,7 +159,15 @@ function Context({ children }) {
 			case 'changeRoomPrice': {
 				const selectedRoom = getSelectedRoom(draft);
 				selectedRoom.price = action.price;
+				w;
+				return;
 			}
+			case 'changeCustom': {
+				const selectedWindow = getSelectedWindow(draft);
+				selectedWindow.custom = action.custom;
+				return;
+			}
+
 			default: {
 				throw Error('Unknown action: ' + action.type);
 			}

@@ -10,7 +10,10 @@ import {
 	Fragment,
 	useMemo,
 } from 'react';
+
 import img1 from '../assets/custom/IMG_5162.jpg';
+import { storage } from '../components/Firebase.js';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import customWindowImg from '../assets/quote/questionMark.png';
 import widthImg from '../assets/quote/measure-width-windows.png';
@@ -37,7 +40,8 @@ import {
 	TrashIcon,
 	InformationCircleIcon,
 } from '@heroicons/react/24/outline';
-import { IoMdPhotos } from 'react-icons/io';
+import { LuUploadCloud } from 'react-icons/lu';
+import { TiDelete } from 'react-icons/ti';
 import { QuoteSwiperContext, QuoteRoomsContext, QuoteWindowContext } from '../context/Context';
 import { createClient } from 'contentful';
 import { createClient as createAuthClient } from 'contentful-management';
@@ -46,13 +50,13 @@ import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
 import { Autoplay, Navigation, Pagination, EffectFade } from 'swiper';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Axios } from 'axios';
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
+import { scaleBetween } from 'parallax-controller';
 
 const styles = {
 	all: {
@@ -93,11 +97,8 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 	const setMode = modeState[1];
 	const [isOpen, setIsModalOpen] = useState(false);
 	useEffect(() => {
-		console.log('\n\nuseEffect in WindowCarousel Triggered');
-
 		if (swiper && carouselReinitialized) {
 			swiper.slideTo(swiper.slides.length - 1);
-			console.log('boolean logic in useEffect in WindowCarousel executed\n\n');
 			carouselReinitializedRef.current = false;
 		}
 	}, [selectedRoom]);
@@ -113,28 +114,11 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 		selectedWindow && selectedRoom ? (
 			selectedRoom.windows.map((window, index) => {
 				return (
-					// <Transition
-					// 	enter='transition-opacity duration-75'
-					// 	enterFrom='opacity-0'
-					// 	enterTo='opacity-100'
-					// 	leave='transition-opacity duration-150'
-					// 	leaveFrom='opacity-100'
-					// 	leaveTo='opacity-0'>
 					<SwiperSlide className='min-w-full ' key={index}>
 						<div
 							style={{ minHeight: '24rem' }}
 							className=' p-4 flex flex-col items-center  justify-between mx-auto  shadow-xl  sticky windowModal  bg-white'>
 							{mode == 'Manage' && (
-								// <div
-								// 	onClick={() => {
-								// 		roomsDispatch({ type: 'addWindow' });
-								// 		carouselReinitializedRef.current = true;
-								// 		setMode('Customize');
-								// 	}}
-								// 	className='text-textPrimary transition flex flex-wrap w-16 px-1 justify-center items-center cursor-pointer rounded absolute top-3 right-3  border border-gray-500 bg-quotePrimary hover:bg-yellow-400'>
-								// 	<div className='text-center font-semibold'>Window</div>
-								// 	<PlusIcon className='h-6'></PlusIcon>
-								// </div>
 								<button
 									onClick={() => {
 										roomsDispatch({ type: 'addWindow' });
@@ -546,7 +530,7 @@ function WindowType({ data, setAvailableFrameTypes }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 
-	const [current, setCurrent] = useState([...Array(data.length)]);
+	const [current, setCurrent] = useState([...Array(data.length + 1)]);
 	const [previousIndex, setPreviousIndex] = useState(null);
 
 	useEffect(() => {
@@ -554,8 +538,18 @@ function WindowType({ data, setAvailableFrameTypes }) {
 	}, [selectedWindow]);
 
 	function initialize() {
+		console.log('triggered');
 		const newArray = current.map((element, index) => {
-			let APIitem = data[index].fields;
+			if (index == current.length - 1) {
+				if (selectedWindow.custom) {
+					console.log('selectedWindow.type', selectedWindow.type);
+					return true;
+				} else {
+					return false;
+				}
+			}
+			if (!data[index]) return false;
+			let APIitem = data[index].fields || null;
 			if (selectedWindow.type === APIitem.title) {
 				setAvailableFrameTypes({
 					fiberglass: APIitem.fiberglass,
@@ -570,15 +564,33 @@ function WindowType({ data, setAvailableFrameTypes }) {
 
 		setCurrent(newArray);
 	}
-	console.log('selectedWindow.price', selectedWindow);
 	function change(num) {
+		console.log('Window Type change triggiered');
 		let temp = [...current];
 		let price = selectedWindow.price;
 		let index;
+
+		if (selectedWindow.custom) {
+			roomsDispatch({ type: 'changeCustom', custom: false });
+		}
 		for (let i = 0; i < temp.length; i++) {
-			let APIitem = data[i].fields;
+			if (num == data.length) {
+				roomsDispatch({ type: 'changeCustom', custom: true });
+				// setPreviousIndex(num);
+				temp[num] = true;
+				console.log(temp);
+				setCurrent(temp);
+				setAvailableFrameTypes({
+					fiberglass: null,
+					vinyl: null,
+					wood: null,
+					img: customWindowImg,
+				});
+				return;
+			}
 			if (num == i) {
-				console.log(`APIitem ${JSON.stringify(APIitem)}`);
+				let APIitem = data[i].fields;
+
 				index = i;
 				temp[index] = true;
 
@@ -587,8 +599,11 @@ function WindowType({ data, setAvailableFrameTypes }) {
 				}
 				price += data[index].fields.price;
 				roomsDispatch({ type: 'windowAttributes', price: price });
-				roomsDispatch({ type: 'windowAttributes', img: APIitem.image.fields.file.url });
-				roomsDispatch({ type: 'windowAttributes', windowType: APIitem.title });
+				if (APIitem) {
+					roomsDispatch({ type: 'windowAttributes', img: APIitem.image.fields.file.url });
+					roomsDispatch({ type: 'windowAttributes', windowType: APIitem.title });
+				}
+				// roomsDispatch({ type: 'windowAttributes', img: APIitem.image.fields.file.url });
 
 				setAvailableFrameTypes({
 					fiberglass: APIitem.fiberglass,
@@ -601,6 +616,7 @@ function WindowType({ data, setAvailableFrameTypes }) {
 				temp[i] = undefined;
 			}
 		}
+
 		setCurrent(temp);
 	}
 
@@ -620,8 +636,10 @@ function WindowType({ data, setAvailableFrameTypes }) {
 		// Custom Item
 		<div
 			key='custom'
-			onClick={() => handleCustomItem()} // Define the onClick handler for the custom item
-			className={`custom-item hover:drop-shadow-xl cursor-pointer transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
+			onClick={() => change(data.length)} // Define the onClick handler for the custom item
+			className={` ${
+				current[data.length] ? 'selected ' : ' hover:drop-shadow-xl cursor-pointer'
+			} transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
 			{/* Custom item content */}
 			{/* You can customize the content of the custom item based on your requirements */}
 			<img className='h-24' src={customWindowImg} />
@@ -649,6 +667,117 @@ function WindowType({ data, setAvailableFrameTypes }) {
 				{listItems}
 				<div></div>
 			</motion.div>
+		</div>
+	);
+}
+
+function CustomWindowType({ data, setAvailableFrameTypes }) {
+	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
+	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
+
+	const [current, setCurrent] = useState([...Array(data.length)]);
+	const [previousIndex, setPreviousIndex] = useState(null);
+
+	useEffect(() => {
+		initialize();
+	}, [selectedWindow]);
+
+	function initialize() {
+		const newArray = current.map((element, index) => {
+			if (!data[index]) return false;
+			let APIitem = data[index].fields || null;
+			if (selectedWindow.type === APIitem.title) {
+				setAvailableFrameTypes({
+					fiberglass: APIitem.fiberglass,
+					vinyl: APIitem.vinyl,
+					wood: APIitem.wood,
+				});
+				setPreviousIndex(index);
+				return true;
+			}
+			return false;
+		});
+
+		setCurrent(newArray);
+	}
+	function clear() {
+		const newArray = current.map((element, index) => {
+			return false;
+		});
+		setCurrent(newArray);
+		roomsDispatch();
+	}
+
+	function change(num) {
+		let temp = [...current];
+		let price = selectedWindow.price;
+		let index;
+
+		for (let i = 0; i < temp.length; i++) {
+			let APIitem = data[i].fields;
+			if (num == i) {
+				index = i;
+				temp[index] = true;
+
+				if (previousIndex != null) {
+					price -= data[previousIndex].fields.price;
+				}
+				price += data[index].fields.price;
+				roomsDispatch({ type: 'windowAttributes', price: price });
+				roomsDispatch({ type: 'windowAttributes', img: APIitem.image.fields.file.url });
+				roomsDispatch({ type: 'windowAttributes', windowType: APIitem.title });
+
+				setAvailableFrameTypes({
+					fiberglass: APIitem.fiberglass,
+					vinyl: APIitem.vinyl,
+					wood: APIitem.wood,
+					img: APIitem.image.fields.file.url,
+				});
+				setPreviousIndex(index);
+			} else if (temp[i] == true) {
+				temp[i] = undefined;
+			}
+		}
+
+		setCurrent(temp);
+	}
+
+	const listItems = data.map((item, index) => (
+		<div
+			key={index}
+			onClick={() => change(index)}
+			className={` ${
+				current[index] ? 'selected ' : ' hover:drop-shadow-xl cursor-pointer'
+			} transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
+			<img className='h-24' src={item.fields.image.fields.file.url} />
+			<div className='text-textPrimary'>{item.fields.title}</div>
+		</div>
+	));
+
+	return (
+		<div id='Type' className='my-10'>
+			<div className='flex flex-row'>
+				<div>
+					<div className=' text-3xl'>Custom Window Type</div>
+					<div className='text-textPrimary'>
+						Choose what type of window you want for this project
+					</div>
+				</div>
+				<InformationCircleIcon
+					// onClick={() => setModalState(true)}
+					className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
+				<button type='button' className='bg-white ml-4 border-slate-500 border-2 h-10 p-2 rounded '>
+					Deselect
+				</button>
+			</div>
+			<motion.div
+				initial={{ opacity: 0 }}
+				whileInView={{ opacity: 1 }}
+				className='flex flex-wrap gap-5'>
+				{listItems}
+				<div></div>
+			</motion.div>
+			<FileUploadForm></FileUploadForm>
 		</div>
 	);
 }
@@ -684,7 +813,6 @@ function Measurements() {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	useEffect(() => {
-		console.log('useEffect in Measurements triggered');
 		initialize();
 	}, [selectedWindow]);
 
@@ -762,6 +890,7 @@ function FileUploadForm() {
 
 	const handleFileChange = (event) => {
 		const files = event.target.files;
+
 		const selectedFilesArray = Array.from(files);
 		setSelectedFiles((prevSelectedFiles) => [...prevSelectedFiles, ...selectedFilesArray]);
 	};
@@ -805,38 +934,38 @@ function FileUploadForm() {
 					onChange={handleFileChange}
 					className='hidden'
 				/>
-				<div>
-					<IoMdPhotos></IoMdPhotos>
-					<button
-						type='button'
-						className='bg-blue-500 text-white rounded px-4 py-2 mb-4'
-						onClick={() => document.getElementById('photos').click()}>
-						Browse Files
-					</button>
+				<div
+					onClick={() => document.getElementById('photos').click()}
+					className='bg-gray-200 pt-4 cursor-pointer flex flex-col items-center border-4 border-dashed border-blue-200 text-xl'>
+					<LuUploadCloud style={{ transform: 'scale(2) ' }} className='mt-2'></LuUploadCloud>
+					<div className='py-2'>Drag and drop or click here</div>
 				</div>
-				{selectedFiles.length > 0 && <p className='mb-2'>Selected Files: {selectedFiles.length}</p>}
+				{selectedFiles.length > 0 && <p className='my-2'>Selected Files: {selectedFiles.length}</p>}
 				<div className='flex flex-wrap gap-4'>
 					{selectedFiles.map((file, index) => (
-						<div key={index} className='w-1/4'>
-							<img
-								src={URL.createObjectURL(file)}
-								alt={`Selected File ${index}`}
-								className='w-full h-auto rounded'
-							/>
-							<p className='mt-2 text-center'>{file.name}</p>
-							<button
-								type='button'
-								className='text-red-500 underline mt-1'
-								onClick={() => handleFileDelete(index)}>
-								Delete
-							</button>
+						<div key={index} className='border h-20 p-2 w-full flex flex-row items-center '>
+							{file.type.startsWith('image/') ? (
+								<img
+									src={URL.createObjectURL(file) || 'https://via.placeholder.com/150'}
+									alt={`Selected File ${index}`}
+									className='w-auto h-full rounded'
+								/>
+							) : (
+								<PhotoIcon className=' w-auto h-full rounded '></PhotoIcon>
+							)}
+
+							<div className=' mt-2 flex flex-row justify-between w-full items-center'>
+								<p className=' ml-5 text-center'>{file.name}</p>
+
+								<TiDelete
+									style={{ transform: 'scale(2.5)' }}
+									className='mx-2 cursor-pointer text-red-500 '
+									onClick={() => handleFileDelete(index)}></TiDelete>
+							</div>
 						</div>
 					))}
 				</div>
 			</div>
-			<button type='submit' className='mt-4 bg-blue-500 text-white rounded px-4 py-2'>
-				Submit
-			</button>
 		</form>
 	);
 }
@@ -854,7 +983,6 @@ const ProjectPhoto = () => {
 	}
 
 	useEffect(() => {
-		console.log('useEffect in ProjectPhoto triggered');
 		initialize();
 	}, [selectedWindow]);
 
@@ -872,9 +1000,9 @@ const ProjectPhoto = () => {
 			<motion.div
 				initial={{ opacity: 0 }}
 				whileInView={{ opacity: 1 }}
-				className='flex flex-row justify-around gap-4 items-center p-2 mt-5'>
-				<PhotoIcon className='w-48'></PhotoIcon>
-				<div className=''>
+				className='flex flex-row justify-around gap-4 items-start p-2 '>
+				<PhotoIcon className=' w-48 '></PhotoIcon>
+				<div className='mt-4'>
 					<div>
 						<div className='font-semibold leading-6 '>Take Picture</div>
 						<div className='text-textPrimary'>
@@ -883,9 +1011,8 @@ const ProjectPhoto = () => {
 						</div>
 					</div>
 
-					<div className=''>
+					{/* <div className=''>
 						<label for='formFile' className='form-label inline-block mb-2 text-gray-700'>
-							{/* <span className='text-red-500'>* </span>Pictures related to Project */}
 						</label>
 						<input
 							className='block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0
@@ -894,12 +1021,8 @@ const ProjectPhoto = () => {
 							id='photo'
 							multiple
 						/>
-					</div>
-					{/* <form>
-						<label for='photos'>Select Photos:</label>
-						<input type='file' id='photos' name='photos' multiple />
-						<button type='submit'>Submit</button>
-					</form> */}
+					</div> */}
+
 					<FileUploadForm></FileUploadForm>
 				</div>
 			</motion.div>
@@ -1072,7 +1195,6 @@ function ItemsModal({ openState, title, body }) {
 	function openModal() {
 		setIsModalOpen(true);
 	}
-	console.log('isOpen', isOpen);
 
 	return (
 		<>
@@ -1167,9 +1289,9 @@ function ExteriorColorType({ data, selectedFrame }) {
 		<div className='my-10'>
 			<div className='flex flex-row'>
 				<div>
-					<div className=' text-3xl'>Exterior Color</div>
+					<div className=' text-3xl'>PVC Exterior Color</div>
 					<div className='text-textPrimary'>
-						Choose what type of exterior color you want for this window
+						Choose what type of PVC exterior color you want for this window
 					</div>
 				</div>
 				<InformationCircleIcon
@@ -1249,9 +1371,9 @@ function InteriorColorType({ data, selectedFrame }) {
 		<div id='Interior' className='my-10'>
 			<div className='flex flex-row'>
 				<div>
-					<div className=' text-3xl'>Interior Color</div>
+					<div className=' text-3xl'>PVC Interior Color</div>
 					<div className='text-textPrimary'>
-						Choose what type of interior color you want for this window
+						Choose what type of PVC interior color you want for this window
 					</div>
 				</div>
 				<InformationCircleIcon
@@ -1351,7 +1473,6 @@ function ModalCreateRoom({ openState, currentState, mode }) {
 			roomsDispatch({ type: 'addRoom', name: userName });
 			setCurrent((prevCurrent) => [...prevCurrent, false]);
 		} else if (mode == 'Edit') {
-			console.log('Edit mode triggered ');
 			roomsDispatch({ type: 'editRoom', name: userName });
 		}
 		setIsModalOpen(false);
@@ -1393,7 +1514,6 @@ function MyModal({ openState, mode, currentState }) {
 
 	const selectedRoom = useContext(QuoteRoomsContext).selectedRoom;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
-	console.log(`selectedRoom: ${selectedRoom}`);
 	function closeModal() {
 		setIsModalOpen(false);
 	}
@@ -1546,9 +1666,6 @@ const ManagementSection = ({ quoteModeState }) => {
 	const [initialized, setInitialized] = useState(false);
 
 	useEffect(() => {
-		console.log(`Special useEffect in ManagementSection triggered with ${selectedRoom.name}`);
-		console.log(selectedRoom.name == 'Blank');
-
 		if (selectedRoom.name == 'Blank') {
 			setMode('Edit');
 			setIsModalOpen(true);
@@ -1659,7 +1776,6 @@ const ManagementSection = ({ quoteModeState }) => {
 	};
 
 	useEffect(() => {
-		console.log('useEffect in ManagementSection triggered');
 		initialize();
 	}, [selectedRoomId]);
 
@@ -1691,13 +1807,6 @@ const ManagementSection = ({ quoteModeState }) => {
 					{/* <div className='font-semibold'>Delete</div> */}
 				</button>
 
-				{/* <button
-					type='button'
-					onClick={() => createWindow()}
-					className='hover:drop-shadow-2xl px-1 flex flex-row border border-black items-center m-0 justify-center gap-1  bg-quotePrimary transition hover:bg-yellow-500'>
-					<PlusIcon className=' font-semibold h-6'></PlusIcon>
-					<div className=' font-semibold'>Add Window</div>
-				</button> */}
 				<button
 					onClick={() => createWindow()}
 					class=' bg-quotePrimary border border-gray-800 text-textPrimary2 close-button hover:bg-yellow-400'>
@@ -1760,6 +1869,34 @@ function createPDF() {
 	// return doc.output('datauristring');
 	return doc;
 }
+
+function FirebaseForm() {
+	const [imageUpload, setImageUpload] = useState();
+
+	const uploadFile = () => {
+		if (!imageUpload) return;
+
+		const imageRef = ref(storage, `9jacoder/images/${imageUpload.name}`);
+
+		uploadBytes(imageRef, imageUpload).then((snapshot) => {
+			getDownloadURL(snapshot.ref).then((url) => {
+				console.log(url);
+			});
+		});
+	};
+
+	return (
+		<div className='App'>
+			<input
+				type='file'
+				onChange={(event) => {
+					setImageUpload(event.target.files[0]);
+				}}
+			/>
+			<button onClick={uploadFile}>Upload</button>
+		</div>
+	);
+}
 export default function Quote() {
 	let htmlData = '<p>This is some <strong>rich HTML</strong> content.</p>';
 	const richTextField = {
@@ -1805,12 +1942,10 @@ export default function Quote() {
 		],
 	};
 	documentToHtmlString(htmlData);
-	console.log('htmlData', documentToHtmlString(htmlData));
 	const htmlField = {
 		// 'en-US': documentToHtmlString(htmlData),
 		'en-US': richTextField,
 	};
-	console.log('htmlField', htmlField);
 
 	const contentfulData = {
 		fields: {
@@ -1843,7 +1978,7 @@ export default function Quote() {
 			const env = await space.getEnvironment('master');
 			console.log('env', env);
 			try {
-				env.createEntry('testUser', contentfulData);
+				// env.createEntry('testUser', contentfulData);
 				const asset = await env.createAsset({
 					fields: {
 						title: {
@@ -1876,10 +2011,15 @@ export default function Quote() {
 		})();
 		// const space = userClient.getSpace('dd68j6yxui75');
 		// const env = space.getEnvironment('master');
-		console.log('userClient', userClient);
 	}, []);
 
-	const names = ['quoteWindowType', 'quoteFrame', 'quoteInteriorColor', 'quoteExteriorColor'];
+	const names = [
+		'quoteWindowType',
+		'quoteFrame',
+		'quoteInteriorColor',
+		'quoteExteriorColor',
+		'quoteWindowCustom',
+	];
 
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 
@@ -1891,12 +2031,9 @@ export default function Quote() {
 	const [data, setData] = useState([]);
 	const getTitles = useCallback(async () => {
 		try {
-			console.log(client);
 			let temp = [];
 			for (let i = 0; i < names.length; i++) {
 				const res = await client.getEntries({ content_type: names[i] });
-				console.log('res', res);
-				console.log('res', await client.getEntries({ content_type: 'testUser' }));
 				temp.push(res.items);
 			}
 
@@ -1928,11 +2065,9 @@ export default function Quote() {
 	});
 
 	const changeTransitionMode = () => {
-		console.log('mode in changeTransitionMode', mode);
 		setTransitionMode(mode);
 	};
 
-	console.log(`mode is ${mode} and transitionMode is ${transitionMode}`);
 	return (
 		<div id='' className='relative min-h-screen  '>
 			<Masthead img={img1} title={'Get Quote'}></Masthead>
@@ -1952,6 +2087,7 @@ export default function Quote() {
 					className='p-4 bg-red-200'>
 					Test Function
 				</button>
+				<FirebaseForm></FirebaseForm>
 			</div>
 
 			{/* <div ref={beforeCheckoutSubmitRef}>
@@ -2000,6 +2136,18 @@ export default function Quote() {
 							<WindowType
 								data={data[0]}
 								setAvailableFrameTypes={setAvailableFrameTypes}></WindowType>
+							<Transition
+								show={selectedWindow.custom}
+								enter='transition-opacity duration-75'
+								enterFrom='opacity-0'
+								enterTo='opacity-100'
+								leave='transition-opacity duration-150'
+								leaveFrom='opacity-100'
+								leaveTo='opacity-0'>
+								<CustomWindowType
+									data={data[4]}
+									setAvailableFrameTypes={setAvailableFrameTypes}></CustomWindowType>
+							</Transition>
 							<FrameType availableFrameTypes={availableFrameTypes} data={data[1]}></FrameType>
 
 							{selectedFrame != null && selectedWindow.type != null ? (
@@ -2038,7 +2186,6 @@ export default function Quote() {
 						enter='transition-opacity duration-75'
 						enterFrom='opacity-0'
 						enterTo='opacity-100'
-						onEnter={() => console.log('entered')}
 						leave='transition-opacity duration-150'
 						leaveFrom='opacity-100'
 						leaveTo='opacity-0'
