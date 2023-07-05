@@ -4,7 +4,7 @@ import Carousel from '../components/SwiperCarousel';
 import { GrContactInfo } from 'react-icons/gr';
 import { TbWindow } from 'react-icons/tb';
 import { motion } from 'framer-motion';
-
+import { CustomLink } from '../components/Nav.jsx';
 function Home() {
 	const container = {
 		hidden: { opacity: 0, transform: 'translateX(calc(-10vw))' },
@@ -47,9 +47,10 @@ function Home() {
 								<span class='circle' aria-hidden='true'>
 									<span class='icon arrow'></span>
 								</span>
-								<span href='Window-Project/quote' class='button-text'>
+
+								<CustomLink className='button-text' to='/Window-Project/quote'>
 									Get Quote
-								</span>
+								</CustomLink>
 							</button>
 						</div>
 					</div>

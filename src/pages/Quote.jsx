@@ -10,7 +10,7 @@ import {
 	Fragment,
 	useMemo,
 } from 'react';
-
+import { PDFGenerator } from '../components/UploadQuote.jsx';
 import img1 from '../assets/custom/IMG_5162.jpg';
 import { storage } from '../components/Firebase.js';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -96,6 +96,7 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 	const mode = modeState[0];
 	const setMode = modeState[1];
 	const [isOpen, setIsModalOpen] = useState(false);
+	const [modalMode, setModalMode] = useState(false);
 	useEffect(() => {
 		if (swiper && carouselReinitialized) {
 			swiper.slideTo(swiper.slides.length - 1);
@@ -134,15 +135,22 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 								</button>
 							)}
 
-							<div className='relative text-2xl my-2 text-textPrimary font-semibold'>
+							<div className='flex flex-row justify-center items-center text-center relative text-2xl my-2 text-textPrimary font-semibold'>
 								<div>Room: {selectedRoom.name} </div>
+
+								<PencilSquareIcon
+									onClick={() => {
+										setIsModalOpen(true);
+										setModalMode('Edit');
+									}}
+									className='mb-1 ml-2 cursor-pointer h-7 hover:text-yellow-800'></PencilSquareIcon>
 							</div>
 
 							{!isModal &&
 								(window.img != null ? (
 									<>
 										<img
-											className='my-2 h-60'
+											className='my-2 h-60 max-w-xs lg:max-w-md'
 											src={window.img}
 											// src={availableFrameTypes.img != null ? availableFrameTypes.img : null}
 											alt=''
@@ -215,21 +223,18 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 											</tr>
 											<tr
 												onClick={() => {
-													setCategoryFocus('Width');
+													setCategoryFocus('Photo');
 													changeMode();
 												}}
-												className='font-semibold text-textPrimary bg-green-100 hover:bg-green-200 text-center cursor-pointer duration-300'>
-												<td className='border-gray-500 border-r  py-1 px-6'>Width</td>
-												<td className='py-1 px-6 font-medium'>{window.width || 'Optional'}</td>
-											</tr>
-											<tr
-												onClick={() => {
-													setCategoryFocus('Height');
-													changeMode();
-												}}
-												className='font-semibold text-textPrimary bg-green-100 hover:bg-green-200 text-center cursor-pointer duration-300'>
-												<td className='border-gray-500 border-r  py-1 px-6'>Height</td>
-												<td className='py-1 px-6 font-medium'>{window.height || 'Optional'}</td>
+												className={` ${
+													window.photo
+														? 'bg-green-100 hover:bg-green-200'
+														: 'bg-red-100 hover:bg-red-200'
+												} font-semibold text-textPrimary  text-center cursor-pointer duration-300`}>
+												<td className='border-gray-500 border-r  py-1 px-6'>Photo Included</td>
+												<td className='py-1 px-6 font-medium'>
+													{window.photo == true ? 'Yes' : 'No'}
+												</td>
 											</tr>
 											<tr
 												onClick={() => {
@@ -259,18 +264,21 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 											</tr>
 											<tr
 												onClick={() => {
-													setCategoryFocus('Photo');
+													setCategoryFocus('Width');
 													changeMode();
 												}}
-												className={` ${
-													window.photo
-														? 'bg-green-100 hover:bg-green-200'
-														: 'bg-red-100 hover:bg-red-200'
-												} font-semibold text-textPrimary  text-center cursor-pointer duration-300`}>
-												<td className='border-gray-500 border-r  py-1 px-6'>Photo Included</td>
-												<td className='py-1 px-6 font-medium'>
-													{window.photo == true ? 'Yes' : 'No'}
-												</td>
+												className='font-semibold text-textPrimary bg-green-100 hover:bg-green-200 text-center cursor-pointer duration-300'>
+												<td className='border-gray-500 border-r  py-1 px-6'>Width</td>
+												<td className='py-1 px-6 font-medium'>{window.width || 'Optional'}</td>
+											</tr>
+											<tr
+												onClick={() => {
+													setCategoryFocus('Height');
+													changeMode();
+												}}
+												className='font-semibold text-textPrimary bg-green-100 hover:bg-green-200 text-center cursor-pointer duration-300'>
+												<td className='border-gray-500 border-r  py-1 px-6'>Height</td>
+												<td className='py-1 px-6 font-medium'>{window.height || 'Optional'}</td>
 											</tr>
 										</tbody>
 									</table>
@@ -304,7 +312,10 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 								<div className='flex w-full px-4 m-4 h-14 gap-4'>
 									<button
 										type='button'
-										onClick={() => setIsModalOpen(true)}
+										onClick={() => {
+											setIsModalOpen(true);
+											setModalMode('DeleteWindow');
+										}}
 										className='px-2 flex flex-row border border-black items-center m-0 justify-center gap-3 w-1/3 bg-red-500 transition hover:bg-red-600'>
 										<TrashIcon className=' font-semibold h-6'></TrashIcon>
 										<div className='font-semibold '>Delete</div>
@@ -369,7 +380,8 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 				<MyModal
 					openState={[isOpen, setIsModalOpen]}
 					currentState={['dummy', 'dummy']}
-					mode={'DeleteWindow'}></MyModal>
+					mode={modalMode}></MyModal>
+
 				{createSlides}
 			</Swiper>
 		</Transition>
@@ -532,6 +544,7 @@ function WindowType({ data, setAvailableFrameTypes }) {
 
 	const [current, setCurrent] = useState([...Array(data.length + 1)]);
 	const [previousIndex, setPreviousIndex] = useState(null);
+	const [modalState, setModalState] = useState(false);
 
 	useEffect(() => {
 		initialize();
@@ -619,7 +632,66 @@ function WindowType({ data, setAvailableFrameTypes }) {
 
 		setCurrent(temp);
 	}
-
+	const title = <div className='text-textPrimary font-bold text-2xl'>Window Types</div>;
+	const body = (
+		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
+			<div>
+				<div className='relative mx-auto text-center underline text-2xl '>Fixed Windows</div>
+				<div className='mt-2'>
+					Fixed windows are stationary and cannot be opened or closed. They are designed to maximize
+					natural light and provide unobstructed views. Fixed windows are perfect for areas where
+					ventilation is not a priority, such as high or hard-to-reach places.
+				</div>
+			</div>
+			<div>
+				<div className='relative mx-auto text-center underline text-2xl '>Single Hung Windows</div>
+				<div className='mt-2'>
+					Single hung windows consist of two sashes, but only the bottom sash is operable. The top
+					sash remains fixed. They are easy to clean and offer a classic, timeless look.
+				</div>
+			</div>
+			<div>
+				<div className='relative mx-auto text-center underline text-2xl '>Double Hung Windows</div>
+				<div className='mt-2'>
+					Double hung windows have two operable sashes, allowing for both top and bottom
+					ventilation. This versatility makes them a popular choice for many homeowners. They also
+					offer easy cleaning with sashes that tilt inwards.
+				</div>
+			</div>
+			<div>
+				<div className='relative mx-auto text-center underline text-2xl '>Awning Windows</div>
+				<div className='mt-2'>
+					Awning windows are hinged at the top and open outward, resembling an awning. They provide
+					excellent ventilation even during light rain, as the outward opening prevents water from
+					entering. Awning windows are commonly used in bathrooms and basements.
+				</div>
+			</div>
+			<div>
+				<div className='relative mx-auto text-center underline text-2xl '>Corner Windows</div>
+				<div className='mt-2'>
+					Corner windows are specially designed to wrap around the corner of a building, providing
+					panoramic views and allowing maximum natural light to enter. They create a unique
+					architectural statement and are popular in modern and contemporary designs.
+				</div>
+			</div>
+			<div>
+				<div className='relative mx-auto text-center underline text-2xl '>Bay Windows</div>
+				<div className='mt-2'>
+					Bay windows are a combination of three or more windows that extend outward from the wall,
+					creating a small alcove or bay. They add architectural interest, increase interior space,
+					and allow abundant natural light to flood the room.
+				</div>
+			</div>
+			<div>
+				<div className='relative mx-auto text-center underline text-2xl '>Casement Windows</div>
+				<div className='mt-2'>
+					Casement windows are hinged on the side and open outward like a door. They provide
+					excellent ventilation and unobstructed views. Casement windows are known for their energy
+					efficiency and easy operation.
+				</div>
+			</div>
+		</div>
+	);
 	const listItems = [
 		...data.map((item, index) => (
 			<div
@@ -648,26 +720,29 @@ function WindowType({ data, setAvailableFrameTypes }) {
 	];
 
 	return (
-		<div id='Type' className='my-10'>
-			<div className='flex flex-row'>
-				<div>
-					<div className=' text-3xl'>Window Type</div>
-					<div className='text-textPrimary'>
-						Choose what type of window you want for this project
+		<>
+			<ItemsModal openState={[modalState, setModalState]} title={title} body={body}></ItemsModal>
+
+			<div id='Type' className='my-10'>
+				<div className='flex flex-row'>
+					<div>
+						<div className=' text-3xl'>Window Type</div>
+						<div className='text-textPrimary'>
+							Choose what type of window you want for this project
+						</div>
 					</div>
+					<InformationCircleIcon
+						onClick={() => setModalState(true)}
+						className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
 				</div>
-				<InformationCircleIcon
-					// onClick={() => setModalState(true)}
-					className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
+				<motion.div
+					initial={{ opacity: 0 }}
+					whileInView={{ opacity: 1 }}
+					className='mt-4 md:mt-0 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
+					{listItems}
+				</motion.div>
 			</div>
-			<motion.div
-				initial={{ opacity: 0 }}
-				whileInView={{ opacity: 1 }}
-				className='flex flex-wrap gap-5'>
-				{listItems}
-				<div></div>
-			</motion.div>
-		</div>
+		</>
 	);
 }
 
@@ -705,7 +780,7 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 			return false;
 		});
 		setCurrent(newArray);
-		roomsDispatch();
+		roomsDispatch({ type: 'windowAttributes', windowType: 'Reference Photo' });
 	}
 
 	function change(num) {
@@ -766,18 +841,26 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 				<InformationCircleIcon
 					// onClick={() => setModalState(true)}
 					className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
-				<button type='button' className='bg-white ml-4 border-slate-500 border-2 h-10 p-2 rounded '>
+				<button
+					onClick={() => clear()}
+					type='button'
+					className='bg-white hover:bg-gray-100 ml-4 border-slate-500 border-2 h-10 p-2 rounded '>
 					Deselect
 				</button>
 			</div>
 			<motion.div
 				initial={{ opacity: 0 }}
 				whileInView={{ opacity: 1 }}
-				className='flex flex-wrap gap-5'>
+				className='mt-4 md:mt-0 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
 				{listItems}
 				<div></div>
 			</motion.div>
-			<FileUploadForm></FileUploadForm>
+			<div className='flex flex-col'>
+				<div className='mx-auto mt-4 text-textPrimary text-2xl underline'>
+					(Optional) Upload a reference
+				</div>{' '}
+				<FileUploadForm fileCategory={'customPhotoReference'}></FileUploadForm>
+			</div>
 		</div>
 	);
 }
@@ -826,7 +909,7 @@ function Measurements() {
 			<div className=' text-3xl'>Measurement Pattern (Optional)</div>
 			<div className='text-textPrimary'>Tell us the measurement of your window if you have it</div>
 			<div className='flex flex-row justify-around gap-4 items-center p-2 mt-5'>
-				<img className='w-48' src={widthImg}></img>
+				<img className='w-32 md:w-48' src={widthImg}></img>
 				<div className=''>
 					<div>
 						<div className='font-semibold leading-6 '>Measure the Width</div>
@@ -842,6 +925,7 @@ function Measurements() {
 							onChange={(e) => {
 								const EMPTYINPUT = -1;
 								roomsDispatch({ type: 'windowAttributes', width: e.target.value || EMPTYINPUT });
+								// roomsDispatch({ type: 'windowAttributes', price: (e.target.value / 4) * 20 });
 							}}
 							type='text'
 							name='width'
@@ -853,7 +937,7 @@ function Measurements() {
 				</div>
 			</div>
 			<div className='flex flex-row justify-around gap-4 items-center p-2 mt-5'>
-				<img className='w-48' src={heightImg}></img>
+				<img className='w-32 md:w-48' src={heightImg}></img>
 				<div className=''>
 					<div>
 						<div className='font-semibold leading-6 '>Measure the Height</div>
@@ -884,15 +968,70 @@ function Measurements() {
 	);
 }
 
-function FileUploadForm() {
+function FileUploadForm({ fileCategory }) {
+	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
+	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
+
 	const [selectedFiles, setSelectedFiles] = useState([]);
+	console.log(selectedFiles);
 	const [dragging, setDragging] = useState(false);
 
-	const handleFileChange = (event) => {
-		const files = event.target.files;
+	useEffect(() => {
+		initialize();
+	}, [selectedWindow]);
 
-		const selectedFilesArray = Array.from(files);
-		setSelectedFiles((prevSelectedFiles) => [...prevSelectedFiles, ...selectedFilesArray]);
+	const initialize = () => {
+		if (fileCategory == 'customPhotoReference') {
+			if (selectedWindow.customPhotoReference) {
+				setSelectedFiles(selectedWindow.customPhotoReference);
+			} else {
+				setSelectedFiles([]);
+			}
+		}
+		if (fileCategory == 'photo') {
+			if (selectedWindow.photo) {
+				setSelectedFiles(selectedWindow.photo);
+			} else {
+				setSelectedFiles([]);
+			}
+		}
+	};
+	function generateUniqueId() {
+		const randomId = Math.random().toString(36).substring(2);
+		return `id-${randomId}`;
+	}
+
+	const update = (uploadedFile) => {
+		if (!uploadedFile) {
+			const updatedFiles = [...selectedFiles];
+			updatedFiles.splice(index, 1);
+			setSelectedFiles(updatedFiles);
+			if (fileCategory == 'customPhotoReference') {
+				roomsDispatch({ type: 'changeCustomPhotoReference', files: updatedFiles });
+			}
+			if (fileCategory == 'photo') {
+				roomsDispatch({ type: 'changePhoto', files: updatedFiles });
+			}
+			return;
+		}
+		const selectedFileArray = Array.from(uploadedFile);
+		setSelectedFiles((prevSelectedFiles) => {
+			let newList = [...prevSelectedFiles, ...selectedFileArray];
+			if (fileCategory == 'customPhotoReference') {
+				roomsDispatch({ type: 'changeCustomPhotoReference', files: newList });
+			}
+			if (fileCategory == 'photo') {
+				roomsDispatch({ type: 'changePhoto', files: newList });
+			}
+			return newList;
+		});
+	};
+
+	const handleFileChange = (event) => {
+		console.log(event.target);
+		console.log('handleFileChange', fileCategory);
+		const uploadedFile = event.target.files;
+		update(uploadedFile);
 	};
 
 	const handleDragOver = (event) => {
@@ -906,18 +1045,17 @@ function FileUploadForm() {
 
 	const handleDrop = (event) => {
 		event.preventDefault();
-		const files = event.dataTransfer.files;
-		const selectedFilesArray = Array.from(files);
-		setSelectedFiles((prevSelectedFiles) => [...prevSelectedFiles, ...selectedFilesArray]);
+		const uploadedFile = event.dataTransfer.files;
+		update(uploadedFile);
 		setDragging(false);
 	};
 
 	const handleFileDelete = (index) => {
-		const updatedFiles = [...selectedFiles];
-		updatedFiles.splice(index, 1);
-		setSelectedFiles(updatedFiles);
+		update(null);
 	};
-
+	const fileInputId = generateUniqueId();
+	console.log('selectedFiles', selectedFiles);
+	// const [fileInputId] = useState('photos' + fileCategory);
 	return (
 		<form>
 			<div
@@ -925,45 +1063,51 @@ function FileUploadForm() {
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
 				onDrop={handleDrop}>
-				<label htmlFor='photos' className='mb-2'></label>
+				<label htmlFor={fileInputId} className='mb-2'></label>
 				<input
 					type='file'
-					id='photos'
-					name='photos'
+					id={fileInputId}
+					name={fileInputId}
 					multiple
 					onChange={handleFileChange}
 					className='hidden'
 				/>
 				<div
-					onClick={() => document.getElementById('photos').click()}
+					onClick={() => {
+						console.log('id', document.getElementById(fileInputId));
+						document.getElementById(fileInputId).click();
+					}}
 					className='bg-gray-200 pt-4 cursor-pointer flex flex-col items-center border-4 border-dashed border-blue-200 text-xl'>
 					<LuUploadCloud style={{ transform: 'scale(2) ' }} className='mt-2'></LuUploadCloud>
 					<div className='py-2'>Drag and drop or click here</div>
 				</div>
-				{selectedFiles.length > 0 && <p className='my-2'>Selected Files: {selectedFiles.length}</p>}
+				{selectedFiles && selectedFiles.length > 0 && (
+					<p className='my-2'>Selected Files: {selectedFiles.length}</p>
+				)}
 				<div className='flex flex-wrap gap-4'>
-					{selectedFiles.map((file, index) => (
-						<div key={index} className='border h-20 p-2 w-full flex flex-row items-center '>
-							{file.type.startsWith('image/') ? (
-								<img
-									src={URL.createObjectURL(file) || 'https://via.placeholder.com/150'}
-									alt={`Selected File ${index}`}
-									className='w-auto h-full rounded'
-								/>
-							) : (
-								<PhotoIcon className=' w-auto h-full rounded '></PhotoIcon>
-							)}
+					{selectedFiles &&
+						selectedFiles.map((file, index) => (
+							<div key={index} className='border h-20 p-2 w-full flex flex-row items-center '>
+								{file.type.startsWith('image/') ? (
+									<img
+										src={URL.createObjectURL(file) || 'https://via.placeholder.com/150'}
+										alt={`Selected File ${index}`}
+										className='w-auto h-full rounded'
+									/>
+								) : (
+									<PhotoIcon className=' w-auto h-full rounded '></PhotoIcon>
+								)}
 
-							<div className=' mt-2 flex flex-row justify-between w-full items-center'>
-								<p className=' ml-5 text-center'>{file.name}</p>
+								<div className=' mt-2 flex flex-row justify-between w-full items-center'>
+									<p className=' ml-5 text-center'>{file.name}</p>
 
-								<TiDelete
-									style={{ transform: 'scale(2.5)' }}
-									className='mx-2 cursor-pointer text-red-500 '
-									onClick={() => handleFileDelete(index)}></TiDelete>
+									<TiDelete
+										style={{ transform: 'scale(2.5)' }}
+										className='mx-2 cursor-pointer text-red-500 '
+										onClick={() => handleFileDelete(index)}></TiDelete>
+								</div>
 							</div>
-						</div>
-					))}
+						))}
 				</div>
 			</div>
 		</form>
@@ -981,14 +1125,6 @@ const ProjectPhoto = () => {
 			roomsDispatch({ type: 'windowAttributes', photo: 'true' });
 		};
 	}
-
-	useEffect(() => {
-		initialize();
-	}, [selectedWindow]);
-
-	const initialize = () => {
-		// document.getElementById('photo').value = selectedWindow.photo;
-	};
 
 	return (
 		<div id='Photo' className='my-10'>
@@ -1023,7 +1159,7 @@ const ProjectPhoto = () => {
 						/>
 					</div> */}
 
-					<FileUploadForm></FileUploadForm>
+					<FileUploadForm fileCategory={'photo'}></FileUploadForm>
 				</div>
 			</motion.div>
 			<div className='mt-5 flex justify-evenly'></div>
@@ -1199,7 +1335,7 @@ function ItemsModal({ openState, title, body }) {
 	return (
 		<>
 			<Transition appear show={isOpen} as={Fragment}>
-				<Dialog as='div' className='relative z-10' onClose={closeModal}>
+				<Dialog as='div' className='relative z-10 ' onClose={closeModal}>
 					<Transition.Child
 						as={Fragment}
 						enter='ease-out duration-300'
@@ -1211,8 +1347,8 @@ function ItemsModal({ openState, title, body }) {
 						<div className='fixed inset-0 bg-black bg-opacity-25' />
 					</Transition.Child>
 
-					<div className='fixed inset-0 overflow-y-auto'>
-						<div className='flex min-h-full items-center justify-center p-4 text-center'>
+					<div className='  mt-20 fixed inset-0 overflow-y-auto'>
+						<div className='flex  md:min-h-full items-center justify-center p-4 text-center'>
 							<Transition.Child
 								as={Fragment}
 								enter='ease-out duration-300'
@@ -1221,8 +1357,10 @@ function ItemsModal({ openState, title, body }) {
 								leave='ease-in duration-200'
 								leaveFrom='opacity-100 scale-100'
 								leaveTo='opacity-0 scale-95'>
-								<Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
-									<Dialog.Title as='h3' className='text-lg font-medium leading-6 text-gray-900'>
+								<Dialog.Panel className='w-4/5 md:w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+									<Dialog.Title
+										as='h3'
+										className='text-center md:text-left text-lg font-medium leading-6 text-gray-900'>
 										{title}
 									</Dialog.Title>
 
@@ -1239,6 +1377,7 @@ function ItemsModal({ openState, title, body }) {
 function ExteriorColorType({ data, selectedFrame }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
+	const [modalState, setModalState] = useState(false);
 
 	const [current, setCurrent] = useState([...Array(data.length)]);
 	useEffect(() => {
@@ -1268,9 +1407,26 @@ function ExteriorColorType({ data, selectedFrame }) {
 		roomsDispatch({ type: 'windowAttributes', exterior: data[num].fields.title });
 		setCurrent(temp);
 	}
-
+	const title = <div className='text-textPrimary font-bold text-2xl'>PVC Exterior Paint</div>;
+	const body = (
+		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
+			<div>
+				<img></img>
+				<div className='mt-2'>
+					Introducing our PVC Exterior Paint, specially formulated to enhance and protect your
+					windows. Our PVC Exterior Paint is designed to adhere to the surface of PVC frames,
+					providing a durable and long-lasting finish. With a wide range of colors to choose from,
+					you can customize the look of your windows to match your style and complement your home's
+					exterior. Our high-quality paint offers excellent resistance to UV rays, fading, cracking,
+					and peeling, ensuring that your windows maintain their vibrant appearance for years to
+					come. Trust our PVC Exterior Paint to give your windows a fresh and appealing makeover
+					while protecting them from the elements.
+				</div>
+			</div>
+		</div>
+	);
 	const listItems = data.map((item, index) =>
-		item.fields[selectedFrame] ? (
+		item.fields.availability ? (
 			<motion.div
 				initial={{ opacity: 0 }}
 				whileInView={{ opacity: 1 }}
@@ -1282,27 +1438,45 @@ function ExteriorColorType({ data, selectedFrame }) {
 				<img className='h-24' src={item.fields.image.fields.file.url} />
 				<div className='text-textPrimary text-center '>{item.fields.title}</div>
 			</motion.div>
-		) : null
+		) : (
+			<motion.div
+				initial={{ opacity: 0 }}
+				whileInView={{ opacity: 1 }}
+				key={index}
+				className={` 
+			  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 opacity-50 bg-gray-200`}>
+				<div className='text-sm text-textPrimary font-bold'>Unavailable</div>
+
+				<img className='h-24' src={item.fields.image.fields.file.url} />
+				<div className='text-textPrimary text-center '>{item.fields.title}</div>
+			</motion.div>
+		)
 	);
 
 	return (
-		<div className='my-10'>
-			<div className='flex flex-row'>
-				<div>
-					<div className=' text-3xl'>PVC Exterior Color</div>
-					<div className='text-textPrimary'>
-						Choose what type of PVC exterior color you want for this window
+		<>
+			<ItemsModal openState={[modalState, setModalState]} title={title} body={body}></ItemsModal>
+
+			<div className='my-10'>
+				<div className='flex flex-row'>
+					<div>
+						<div className=' text-3xl'>PVC Exterior Color</div>
+						<div className='text-textPrimary'>
+							Choose what type of PVC exterior color you want for this window
+						</div>
 					</div>
+					<InformationCircleIcon
+						onClick={() => setModalState(true)}
+						className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
 				</div>
-				<InformationCircleIcon
-					onClick={() => setModalState(true)}
-					className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
+				{/* <div className='mt-5 grid grid-cols-2 quotesm:grid-cols-3 quotemd:grid-cols-4 quotelg:grid-cols-5  xl:grid-cols-6  gap-4'>
+  				{listItems}
+  			</div> */}
+				<div className='mt-4 md:mt-0 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
+					{listItems}
+				</div>
 			</div>
-			{/* <div className='mt-5 grid grid-cols-2 quotesm:grid-cols-3 quotemd:grid-cols-4 quotelg:grid-cols-5  xl:grid-cols-6  gap-4'>
-				{listItems}
-			</div> */}
-			<div className='mt-5 flex flex-wrap gap-5'>{listItems}</div>
-		</div>
+		</>
 	);
 }
 
@@ -1312,6 +1486,7 @@ function InteriorColorType({ data, selectedFrame }) {
 
 	const [current, setCurrent] = useState([...Array(data.length)]);
 	const [previousIndex, setPreviousIndex] = useState(null);
+	const [modalState, setModalState] = useState(false);
 
 	useEffect(() => {
 		initialize();
@@ -1351,9 +1526,25 @@ function InteriorColorType({ data, selectedFrame }) {
 		roomsDispatch({ type: 'windowAttributes', interior: data[num].fields.title });
 		setCurrent(temp);
 	}
-
+	const title = <div className='text-textPrimary font-bold text-2xl'>Interior PVC Paint</div>;
+	const body = (
+		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
+			<div>
+				<img></img>
+				<div className='mt-2'>
+					Introducing our PVC Interior Paint, specially formulated to transform the look of your
+					window frames from the inside. Our PVC Interior Paint offers a wide range of color options
+					to match your interior decor and style. With its superior adhesion and durability, our
+					paint provides a smooth and long-lasting finish on PVC surfaces. Whether you want to
+					refresh the appearance of your windows or create a whole new aesthetic, our PVC Interior
+					Paint is the perfect choice. Trust us to enhance the beauty of your windows with our
+					high-quality PVC Interior Paint.
+				</div>
+			</div>
+		</div>
+	);
 	const listItems = data.map((item, index) =>
-		item.fields[selectedFrame] ? (
+		item.fields.availability ? (
 			<motion.div
 				initial={{ opacity: 0 }}
 				whileInView={{ opacity: 1 }}
@@ -1365,26 +1556,44 @@ function InteriorColorType({ data, selectedFrame }) {
 				<img className='h-24' src={item.fields.image.fields.file.url} />
 				<div className='text-textPrimary text-center '>{item.fields.title}</div>
 			</motion.div>
-		) : null
+		) : (
+			<motion.div
+				initial={{ opacity: 0 }}
+				whileInView={{ opacity: 1 }}
+				key={index}
+				className={` 
+			  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 opacity-50 bg-gray-200`}>
+				<div className='text-sm text-textPrimary font-bold'>Unavailable</div>
+
+				<img className='h-24' src={item.fields.image.fields.file.url} />
+				<div className='text-textPrimary text-center '>{item.fields.title}</div>
+			</motion.div>
+		)
 	);
 	return (
-		<div id='Interior' className='my-10'>
-			<div className='flex flex-row'>
-				<div>
-					<div className=' text-3xl'>PVC Interior Color</div>
-					<div className='text-textPrimary'>
-						Choose what type of PVC interior color you want for this window
+		<>
+			<ItemsModal openState={[modalState, setModalState]} title={title} body={body}></ItemsModal>
+
+			<div id='Interior' className='my-10'>
+				<div className='flex flex-row'>
+					<div>
+						<div className=' text-3xl'>PVC Interior Color</div>
+						<div className='text-textPrimary'>
+							Choose what type of PVC interior color you want for this window
+						</div>
 					</div>
+					<InformationCircleIcon
+						onClick={() => setModalState(true)}
+						className='cursor-pointer text-textPrimary2 h-10'></InformationCircleIcon>
 				</div>
-				<InformationCircleIcon
-					// onClick={() => setModalState(true)}
-					className='cursor-pointer text-textPrimary2 h-10'></InformationCircleIcon>
+				{/* <div className='mt-5 grid grid-cols-2 quotesm:grid-cols-3 quotemd:grid-cols-4 quotelg:grid-cols-5  xl:grid-cols-6  gap-4'>
+  				{listItems}
+  			</div> */}
+				<div className='mt-4 md:mt-0 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
+					{listItems}
+				</div>
 			</div>
-			{/* <div className='mt-5 grid grid-cols-2 quotesm:grid-cols-3 quotemd:grid-cols-4 quotelg:grid-cols-5  xl:grid-cols-6  gap-4'>
-				{listItems}
-			</div> */}
-			<div className='mt-5 flex flex-wrap gap-4'>{listItems}</div>
-		</div>
+		</>
 	);
 }
 function TrimType({ data, selectedFrame }) {
@@ -1493,15 +1702,15 @@ function ModalCreateRoom({ openState, currentState, mode }) {
 			<div className='mt-4 text-black flex flex-row justify-between '>
 				<button
 					type='button'
-					className='inline-flex transition justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium  hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2'
-					onClick={() => createRoom()}>
-					Confirm
+					className='inline-flex transition justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium  hover:bg-red-200 focus:outline-none focus-visible:ring-2  '
+					onClick={() => setIsModalOpen(false)}>
+					Cancel
 				</button>
 				<button
 					type='button'
-					className='inline-flex transition justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium  hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2'
-					onClick={() => setIsModalOpen(false)}>
-					Cancel
+					className='inline-flex transition justify-center rounded-md border border-transparent bg-green-300 px-4 py-2 text-sm font-medium  hover:bg-green-500 focus:outline-none focus-visible:ring-2  '
+					onClick={() => createRoom()}>
+					Confirm
 				</button>
 			</div>
 		</div>
@@ -1788,11 +1997,11 @@ const ManagementSection = ({ quoteModeState }) => {
 			}  m-4 relative border-solid border-2 border-gray-400  items-center justify-evenly h-40 w-56 px-2 pt-2 flex flex-col  bg-white`}>
 			{/* <TrashIcon className=' h-8 ml-36'></TrashIcon> */}
 
-			<div
-				onClick={() => openModal('Edit')}
-				className='  flex flex-row justify-center items-center text-textPrimary text-center font-semibold '>
+			<div className='  flex flex-row justify-center items-center text-textPrimary text-center font-semibold '>
 				<div className='inline text-center mx-auto'>{room.name}</div>{' '}
-				<PencilSquareIcon className='mb-1 ml-1 cursor-pointer  h-6 hover:text-yellow-800'></PencilSquareIcon>
+				<PencilSquareIcon
+					onClick={() => openModal('Edit')}
+					className='mb-1 ml-1 cursor-pointer  h-6 hover:text-yellow-800'></PencilSquareIcon>
 			</div>
 			<div className='flex flex-col justify-between'>
 				<div className='text-textPrimary text-center  '>Total Cost: ${totalPriceInRoom(room)}</div>
@@ -2079,15 +2288,19 @@ export default function Quote() {
 
 					<div className='text-textPrimary'>Build your product by selecting options below</div>
 				</div>
-				<button
-					type='button'
-					onClick={() => {
-						createPDF();
-					}}
-					className='p-4 bg-red-200'>
-					Test Function
-				</button>
-				<FirebaseForm></FirebaseForm>
+				<div className='hidden'>
+					<button
+						type='button'
+						onClick={() => {
+							// createPDF();
+						}}
+						className='p-4 bg-red-200'>
+						Test Function
+					</button>
+					<PDFGenerator></PDFGenerator>
+
+					<FirebaseForm></FirebaseForm>
+				</div>
 			</div>
 
 			{/* <div ref={beforeCheckoutSubmitRef}>
@@ -2137,7 +2350,7 @@ export default function Quote() {
 								data={data[0]}
 								setAvailableFrameTypes={setAvailableFrameTypes}></WindowType>
 							<Transition
-								show={selectedWindow.custom}
+								show={selectedWindow && selectedWindow.custom}
 								enter='transition-opacity duration-75'
 								enterFrom='opacity-0'
 								enterTo='opacity-100'

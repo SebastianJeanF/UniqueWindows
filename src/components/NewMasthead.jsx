@@ -1,6 +1,6 @@
 import { Parallax, ParallaxBanner, ParallaxBannerLayer } from 'react-scroll-parallax';
 
-export default function Masthead({ img, title, subtitle }) {
+export default function Masthead({ img, title, subtitle, resize }) {
 	const styles = {
 		masthead: {
 			// background: `url(../assets/${imgName})`,
@@ -11,7 +11,10 @@ export default function Masthead({ img, title, subtitle }) {
 			// backgroundPosition: 'center',
 		},
 	};
-
+	// if (resize) {
+	// 	styles.masthead.backgroundSize = '150px auto';
+	// 	styles.masthead.backgroundRepeat = ' no-repeat';
+	// }
 	return (
 		<div className='overflow-hidden'>
 			{/* <section className="bg-dark text-light p-5 p-lg-0 pt-lg-5 text-center">
@@ -27,7 +30,7 @@ export default function Masthead({ img, title, subtitle }) {
       </Container>
      </section> */}
 
-			<div style={styles.masthead} id='animate-area' className='  about-title'>
+			<div style={styles.masthead} id={!resize && 'animate-area'} className='  about-title'>
 				<Parallax speed={-25} className='-z-10 h-full flex flex-col  items-center  '>
 					<div className='about-title-header'>{title}</div>
 

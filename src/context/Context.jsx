@@ -19,11 +19,11 @@ function Context({ children }) {
 		exterior: null,
 		height: null,
 		width: null,
-		photo: null,
 		quantity: 1,
 		price: 0,
 		custom: false,
-		reference: false,
+		photo: null,
+		customPhotoReference: null,
 	};
 	let roomTemplate = {
 		name: 'Blank',
@@ -167,7 +167,17 @@ function Context({ children }) {
 				selectedWindow.custom = action.custom;
 				return;
 			}
-
+			case 'changeCustomPhotoReference': {
+				const selectedWindow = getSelectedWindow(draft);
+				selectedWindow.customPhotoReference = action.files;
+				console.log('selectedWindow.customPhotoReference: ', selectedWindow.customPhotoReference);
+				return;
+			}
+			case 'changePhoto': {
+				const selectedWindow = getSelectedWindow(draft);
+				selectedWindow.photo = action.files;
+				return;
+			}
 			default: {
 				throw Error('Unknown action: ' + action.type);
 			}
