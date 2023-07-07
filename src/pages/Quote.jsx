@@ -10,6 +10,10 @@ import {
 	Fragment,
 	useMemo,
 } from 'react';
+import { createClient } from 'contentful';
+import { createClient as createAuthClient } from 'contentful-management';
+
+import { Form } from '../components/QuoteForm.jsx';
 import { PDFGenerator } from '../components/UploadQuote.jsx';
 import img1 from '../assets/custom/IMG_5162.jpg';
 import { storage } from '../components/Firebase.js';
@@ -43,8 +47,6 @@ import {
 import { LuUploadCloud } from 'react-icons/lu';
 import { TiDelete } from 'react-icons/ti';
 import { QuoteSwiperContext, QuoteRoomsContext, QuoteWindowContext } from '../context/Context';
-import { createClient } from 'contentful';
-import { createClient as createAuthClient } from 'contentful-management';
 
 import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
 import { Autoplay, Navigation, Pagination, EffectFade } from 'swiper';
@@ -401,142 +403,6 @@ const WindowView = ({ className, isModal, modeState, room, setCategoryFocus }) =
 		</div>
 	);
 };
-
-function Form({ setMode }) {
-	const completeQuote = (e) => {
-		e.preventDefault();
-		setMode('Complete');
-	};
-
-	return (
-		<div id='quoteForm' className='mt-5 p-6 bg-white flex items-center justify-center'>
-			<div className='container max-w-screen-lg mx-auto'>
-				<button
-					className='bg-primary transition hover:bg-darkPrimary text-white font-bold py-2 px-4 rounded'
-					onClick={() => setMode('Manage')}>
-					{'< '}Go back
-				</button>
-
-				<div>
-					<div className='mt-4 font-semibold text-xl text-gray-600'>Quote Form</div>
-					<p className='text-gray-500 mb-6'>
-						Fill out this form, and we'll get back to you within 24 hours!
-					</p>
-
-					<div className='bg-white rounded shadow-lg p-4 px-4 md:p-8 mb-6'>
-						<div className='grid gap-4 gap-y-2 text-sm grid-cols-1 lg:grid-cols-3'>
-							<div className='text-gray-600'>
-								<p className='font-medium text-lg'>Please fill out all the fields</p>
-								<div>
-									<span className='text-red-500'>* </span>Required
-								</div>
-							</div>
-
-							<div className='lg:col-span-2'>
-								<form
-									onSubmit={(e) => completeQuote(e)}
-									className='grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5'>
-									<div className='md:col-span-5'>
-										<label for='full_name'>
-											<span className='text-red-500'>* </span>Full Name
-										</label>
-										<input
-											type='text'
-											name='full_name'
-											id='full_name'
-											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
-											required
-										/>
-									</div>
-
-									<div className='md:col-span-5'>
-										<label for='email'>
-											<span className='text-red-500'>* </span>Email Address
-										</label>
-										<input
-											type='text'
-											name='email'
-											id='email'
-											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
-											placeholder='email@domain.com'
-											required
-										/>
-									</div>
-
-									<div className='md:col-span-3'>
-										<label for='address'>
-											<span className='text-red-500'>* </span>Address / Street
-										</label>
-										<input
-											type='text'
-											name='address'
-											id='address'
-											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
-											placeholder=''
-											required
-										/>
-									</div>
-
-									<div className='md:col-span-2'>
-										<label for='city'>
-											<span className='text-red-500'>* </span>City
-										</label>
-										<input
-											type='text'
-											name='city'
-											id='city'
-											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
-											placeholder=''
-											required
-										/>
-									</div>
-
-									<div className='md:col-span-1'>
-										<label for='zipcode'>
-											<span className='text-red-500'>* </span>Zip Code
-										</label>
-										<input
-											type='text'
-											name='zipcode'
-											id='zipcode'
-											className='transition-all flex items-center h-10 border mt-1 rounded px-4 w-full bg-gray-50'
-											placeholder=''
-										/>
-									</div>
-
-									<div className='md:col-span-5'>
-										<label for='comment'>
-											<span className='text-red-500'>* </span>Comments about Project
-										</label>
-										<input
-											type='text'
-											name='comment'
-											id='comment'
-											className='transition-all flex items-center h-10 border mt-1 rounded px-4 w-full bg-gray-50'
-											placeholder=''
-											required
-										/>
-									</div>
-
-									<div className='md:col-span-5 mt-2 text-right'>
-										<div className='inline-flex items-end'>
-											<button
-												type='submit'
-												// onClick={() => setMode('Complete')}
-												className=' bg-primary transition hover:bg-darkPrimary text-white font-bold py-2 px-4 rounded'>
-												Submit
-											</button>
-										</div>
-									</div>
-								</form>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
-}
 
 function WindowType({ data, setAvailableFrameTypes }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
@@ -1480,6 +1346,116 @@ function ExteriorColorType({ data, selectedFrame }) {
 	);
 }
 
+function PVCType({ data, selectedFrame }) {
+	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
+	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
+	const [modalState, setModalState] = useState(false);
+
+	const [current, setCurrent] = useState([...Array(data.length)]);
+	useEffect(() => {
+		initialize();
+	}, [selectedWindow]);
+
+	function initialize() {
+		const newArray = current.map((element, index) => {
+			let APIitem = data[index].fields;
+			if (selectedWindow.exterior == APIitem.title) {
+				return true;
+			}
+			return false;
+		});
+		setCurrent(newArray);
+	}
+
+	function change(num) {
+		let temp = [...current];
+		for (let i = 0; i < temp.length; i++) {
+			if (num == i) {
+				temp[i] = true;
+			} else if (temp[i] == true) {
+				temp[i] = undefined;
+			}
+		}
+		roomsDispatch({ type: 'windowAttributes', exterior: data[num].fields.title });
+		setCurrent(temp);
+	}
+	const title = <div className='text-textPrimary font-bold text-2xl'>PVC Exterior Paint</div>;
+	const body = (
+		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
+			<div>
+				<img></img>
+				<div className='mt-2'>
+					Introducing our PVC Exterior Paint, specially formulated to enhance and protect your
+					windows. Our PVC Exterior Paint is designed to adhere to the surface of PVC frames,
+					providing a durable and long-lasting finish. With a wide range of colors to choose from,
+					you can customize the look of your windows to match your style and complement your home's
+					exterior. Our high-quality paint offers excellent resistance to UV rays, fading, cracking,
+					and peeling, ensuring that your windows maintain their vibrant appearance for years to
+					come. Trust our PVC Exterior Paint to give your windows a fresh and appealing makeover
+					while protecting them from the elements.
+				</div>
+			</div>
+		</div>
+	);
+	const listItems = data.map((item, index) =>
+		item.fields.availability ? (
+			<motion.div
+				initial={{ opacity: 0 }}
+				whileInView={{ opacity: 1 }}
+				key={index}
+				onClick={() => change(index)}
+				className={` ${
+					current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
+				}  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 bg-white`}>
+				<img className='h-24' src={item.fields.image.fields.file.url} />
+				<div className='text-textPrimary text-center '>{item.fields.title}</div>
+			</motion.div>
+		) : (
+			<motion.div
+				initial={{ opacity: 0 }}
+				whileInView={{ opacity: 1 }}
+				key={index}
+				className={` 
+			  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 opacity-50 bg-gray-200`}>
+				<div className='text-sm text-textPrimary font-bold'>Unavailable</div>
+
+				<img className='h-24' src={item.fields.image.fields.file.url} />
+				<div className='text-textPrimary text-center '>{item.fields.title}</div>
+			</motion.div>
+		)
+	);
+
+	function removeEvenItems(array) {
+		return array.filter((_, index) => index % 2 !== 0);
+	}
+	const newArray = removeEvenItems(listItems);
+	return (
+		<>
+			<ItemsModal openState={[modalState, setModalState]} title={title} body={body}></ItemsModal>
+
+			<div className='my-10'>
+				<div className='flex flex-row'>
+					<div>
+						<div className=' text-3xl'>PVC Exterior Color</div>
+						<div className='text-textPrimary'>
+							Choose what type of PVC exterior color you want for this window
+						</div>
+					</div>
+					<InformationCircleIcon
+						onClick={() => setModalState(true)}
+						className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
+				</div>
+				{/* <div className='mt-5 grid grid-cols-2 quotesm:grid-cols-3 quotemd:grid-cols-4 quotelg:grid-cols-5  xl:grid-cols-6  gap-4'>
+  				{listItems}
+  			</div> */}
+				<div className='mt-4 md:mt-0 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
+					{newArray}
+				</div>
+			</div>
+		</>
+	);
+}
+
 function InteriorColorType({ data, selectedFrame }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
@@ -1532,13 +1508,13 @@ function InteriorColorType({ data, selectedFrame }) {
 			<div>
 				<img></img>
 				<div className='mt-2'>
-					Introducing our PVC Interior Paint, specially formulated to transform the look of your
-					window frames from the inside. Our PVC Interior Paint offers a wide range of color options
-					to match your interior decor and style. With its superior adhesion and durability, our
-					paint provides a smooth and long-lasting finish on PVC surfaces. Whether you want to
-					refresh the appearance of your windows or create a whole new aesthetic, our PVC Interior
-					Paint is the perfect choice. Trust us to enhance the beauty of your windows with our
-					high-quality PVC Interior Paint.
+					Introducing our interior paint, specially formulated to transform the look of your window
+					frames from the inside. Our interior paint offers a wide range of color options to match
+					your interior decor and style. With its superior adhesion and durability, our paint
+					provides a smooth and long-lasting finish on PVC surfaces. Whether you want to refresh the
+					appearance of your windows or create a whole new aesthetic, our PVC Interior Paint is the
+					perfect choice. Trust us to enhance the beauty of your windows with our high-quality
+					interior paint.
 				</div>
 			</div>
 		</div>
@@ -1577,9 +1553,9 @@ function InteriorColorType({ data, selectedFrame }) {
 			<div id='Interior' className='my-10'>
 				<div className='flex flex-row'>
 					<div>
-						<div className=' text-3xl'>PVC Interior Color</div>
+						<div className=' text-3xl'>Interior Color</div>
 						<div className='text-textPrimary'>
-							Choose what type of PVC interior color you want for this window
+							Choose what type of interior color you want for this window
 						</div>
 					</div>
 					<InformationCircleIcon
@@ -2071,41 +2047,6 @@ const ManagementSection = ({ quoteModeState }) => {
 	);
 };
 
-function createPDF() {
-	const doc = new jsPDF();
-	doc.text('Hello world!', 10, 10);
-	// doc.save('a4.pdf');
-	// return doc.output('datauristring');
-	return doc;
-}
-
-function FirebaseForm() {
-	const [imageUpload, setImageUpload] = useState();
-
-	const uploadFile = () => {
-		if (!imageUpload) return;
-
-		const imageRef = ref(storage, `9jacoder/images/${imageUpload.name}`);
-
-		uploadBytes(imageRef, imageUpload).then((snapshot) => {
-			getDownloadURL(snapshot.ref).then((url) => {
-				console.log(url);
-			});
-		});
-	};
-
-	return (
-		<div className='App'>
-			<input
-				type='file'
-				onChange={(event) => {
-					setImageUpload(event.target.files[0]);
-				}}
-			/>
-			<button onClick={uploadFile}>Upload</button>
-		</div>
-	);
-}
 export default function Quote() {
 	let htmlData = '<p>This is some <strong>rich HTML</strong> content.</p>';
 	const richTextField = {
@@ -2288,7 +2229,7 @@ export default function Quote() {
 
 					<div className='text-textPrimary'>Build your product by selecting options below</div>
 				</div>
-				<div className='hidden'>
+				<div className=''>
 					<button
 						type='button'
 						onClick={() => {
@@ -2298,8 +2239,6 @@ export default function Quote() {
 						Test Function
 					</button>
 					<PDFGenerator></PDFGenerator>
-
-					<FirebaseForm></FirebaseForm>
 				</div>
 			</div>
 
@@ -2374,6 +2313,7 @@ export default function Quote() {
 									<ExteriorColorType
 										data={data[3]}
 										selectedFrame={selectedFrame}></ExteriorColorType>
+									<PVCType data={data[3]} selectedFrame={selectedFrame}></PVCType>
 									<Measurements></Measurements>
 
 									<div className='border p-2 flex flex-col justify-center border-gray-500 bg-white'>

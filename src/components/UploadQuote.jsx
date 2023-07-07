@@ -1,47 +1,11 @@
-import {
-	MutableRefObject,
-	useEffect,
-	useContext,
-	useRef,
-	useState,
-	useCallback,
-	useLayoutEffect,
-	useTransition,
-	Fragment,
-	useMemo,
-} from 'react';
+import { useContext } from 'react';
 
 import img1 from '../assets/custom/IMG_5162.jpg';
 import { storage } from '../components/Firebase.js';
 import { ref, uploadBytes, getDownloadURL, uploadString } from 'firebase/storage';
 
 import customWindowImg from '../assets/quote/questionMark.png';
-import widthImg from '../assets/quote/measure-width-windows.png';
-import heightImg from '../assets/quote/measure-height-windows.png';
 
-import Masthead from '../components/NewMasthead';
-
-import { Dialog, Disclosure, Transition, Menu, Listbox } from '@headlessui/react';
-import {
-	ChevronUpIcon,
-	ChevronDownIcon,
-	ChevronUpDownIcon,
-	CheckIcon,
-	PlusIcon,
-	MinusIcon,
-} from '@heroicons/react/20/solid';
-import { PhotoIcon as TempPhoto } from '@heroicons/react/24/solid';
-import {
-	MinusCircleIcon,
-	PhotoIcon,
-	PencilSquareIcon,
-	PlusCircleIcon,
-	ShoppingCartIcon,
-	TrashIcon,
-	InformationCircleIcon,
-} from '@heroicons/react/24/outline';
-import { LuUploadCloud } from 'react-icons/lu';
-import { TiDelete } from 'react-icons/ti';
 import { QuoteSwiperContext, QuoteRoomsContext, QuoteWindowContext } from '../context/Context';
 import { createClient } from 'contentful';
 import { createClient as createAuthClient } from 'contentful-management';
@@ -120,7 +84,7 @@ const htmlField = {
 	'en-US': 'test',
 };
 
-const contentfulData = {
+const quoteData = {
 	fields: {
 		info: {
 			'en-US': 'React Data (Again)',
@@ -137,7 +101,7 @@ async function createEntry() {
 	const env = await space.getEnvironment('master');
 	console.log('env', env);
 	try {
-		// env.createEntry('testUser', contentfulData);
+		env.createEntry('quotes', contentfulData);
 		const asset = await env.createAsset({
 			fields: {
 				title: {
@@ -153,7 +117,6 @@ async function createEntry() {
 					},
 				},
 			},
-			file: createPDF(),
 		});
 
 		// Process and publish the Asset
@@ -249,14 +212,12 @@ async function generatePDF(room) {
 		}
 	}
 	// await Promise.all(promises);
-	doc.save('window_properties.pdf');
-	let link = FirebaseForm(doc);
-	ContentfulUpload(link);
+	return doc;
 }
+
 async function FirebaseForm(pdfDoc) {
-	const imageRef = ref(storage, `Sebastian/pdfs/test.pdf`);
-	const pdfBlob = await fetch(pdfDoc.output('blob')).then((response) => response.blob());
-	print('pdfBlob', pdfBlob);
+	const imageRef = ref(storage, `Sebastian/pdfs/${Math.random().toString(18).substring(2)}.pdf`);
+	// const pdfBlob = await fetch(pdfDoc.output('blob')).then((response) => response.blob());
 	// uploadBytes(imageRef, pdfBlob, { contentType: 'application/pdf' }).then((snapshot) => {
 	// 	getDownloadURL(snapshot.ref).then((url) => {
 	// 		console.log(url);
@@ -264,14 +225,22 @@ async function FirebaseForm(pdfDoc) {
 	// });
 	const pdfContent = pdfDoc.output('datauristring').split(',')[1]; // Extract the base64-encoded content
 
-	uploadString(imageRef, pdfContent, 'base64', { contentType: 'application/pdf' }).then(
-		(snapshot) => {
-			getDownloadURL(snapshot.ref).then((url) => {
-				console.log(url);
-				return url;
+	return new Promise((resolve, reject) => {
+		uploadString(imageRef, pdfContent, 'base64', { contentType: 'application/pdf' })
+			.then((snapshot) => {
+				getDownloadURL(snapshot.ref)
+					.then((url) => {
+						console.log(url);
+						resolve(url); // Resolve the Promise with the URL
+					})
+					.catch((error) => {
+						reject(error); // Reject the Promise if there's an error with getDownloadURL
+					});
+			})
+			.catch((error) => {
+				reject(error); // Reject the Promise if there's an error with uploadString
 			});
-		}
-	);
+	});
 }
 
 async function ContentfulUpload(link) {
@@ -283,41 +252,67 @@ async function ContentfulUpload(link) {
 	const space = await userClient.getSpace('dd68j6yxui75');
 	const env = await space.getEnvironment('master');
 	console.log('env', env);
-	// try {
-	// 	// env.createEntry('testUser', contentfulData);
-	// 	const asset = await env.createAsset({
-	// 		fields: {
-	// 			title: {
-	// 				'en-US': 'Generated PDF',
-	// 			},
-	// 			file: {
-	// 				'en-US': {
-	// 					contentType: 'application/pdf',
-	// 					fileName: 'testing.pdf',
-	// 					upload:
-	// 						'https://firebasestorage.googleapis.com/v0/b/uniquewindows-84b19.appspot.com/o/Sebastian%2Fpdfs%2Ftest.pdf?alt=media&token=c64df0fb-a8a4-4bd4-b473-435ef141eb01',
-	// 				},
-	// 			},
-	// 		},
-	// 	});
+	try {
+		// env.createEntry('testUser', contentfulData);
+		const asset = await env.createAsset({
+			fields: {
+				title: {
+					'en-US': `Quote${Math.random().toString(15)}`,
+				},
+				file: {
+					'en-US': {
+						contentType: 'application/pdf',
+						fileName: `${new Date().getDate()}testingJuly6th.pdf`,
+						upload: link,
+					},
+				},
+			},
+		});
 
-	// 	// Process and publish the Asset
-	// 	await asset.processForAllLocales();
-	// 	await asset.publish();
+		// Process and publish the Asset
+		await asset.processForAllLocales();
+		try {
+			await asset.publish();
+		} catch {
+			console.log('Error warning');
+		}
+		const mediaAssetId = asset.sys.id;
+		console.log('This is asset id', mediaAssetId);
+		const entry = await env.createEntry('quotes', {
+			fields: {
+				title: {
+					'en-US': 'User Quote',
+				},
+				quote: {
+					'en-US': {
+						sys: {
+							type: 'Link',
+							linkType: 'Asset',
+							id: mediaAssetId,
+						},
+					},
+				},
+			},
+		});
 
-	// 	// Retrieve the URL of the published Asset
-	// 	const assetUrl = `https:${asset.fields.file['en-US'].url}`;
-	// 	console.log('PDF uploaded to Contentful:', assetUrl);
-	// 	console.log('SUCCESS');
-	// } catch (error) {
-	// 	console.log(error);
-	// }
+		// Publish the entry to make it visible
+		await entry.publish();
+
+		// Retrieve the URL of the published Asset
+		const assetUrl = `https:${asset.fields.file['en-US'].url}`;
+		console.log('PDF uploaded to Contentful:', assetUrl);
+		console.log('SUCCESS');
+	} catch (error) {
+		console.log(error);
+	}
 }
 export function PDFGenerator() {
 	const selectedRoom = useContext(QuoteRoomsContext).selectedRoom;
 
-	const handleGeneratePDF = () => {
-		generatePDF(selectedRoom);
+	const handleGeneratePDF = async () => {
+		let pdfDoc = await generatePDF(selectedRoom);
+		let link = await FirebaseForm(pdfDoc);
+		ContentfulUpload(link);
 	};
 
 	return (
@@ -325,4 +320,36 @@ export function PDFGenerator() {
 			<button onClick={handleGeneratePDF}>Generate PDF</button>
 		</div>
 	);
+}
+
+export async function completeQuote(event) {
+	const selectedRoom = useContext(QuoteRoomsContext).selectedRoom;
+
+	event.preventDefault();
+	let pdfDoc = generatePDF(selectedRoom);
+	addFormToPDF(event, pdfDoc);
+	let link = FirebaseForm(pdfDdoc);
+	ContentfulUpload(link);
+	// Save the PDF
+}
+function addFormToPDF(event, pdfDoc) {
+	const fullName = event.target.elements.full_name.value;
+	const email = event.target.elements.email.value;
+	const address = event.target.elements.address.value;
+	const city = event.target.elements.city.value;
+	const zipcode = event.target.elements.zipcode.value;
+	const comment = event.target.elements.comment.value;
+
+	// Create a new jsPDF instance
+
+	// Format the PDF content
+	pdfDoc.setFontSize(14);
+	pdfDoc.text('Quote Form', 10, 10);
+	pdfDoc.setFontSize(12);
+	pdfDoc.text(`Full Name: ${fullName}`, 10, 20);
+	pdfDoc.text(`Email: ${email}`, 10, 30);
+	pdfDoc.text(`Address: ${address}`, 10, 40);
+	pdfDoc.text(`City: ${city}`, 10, 50);
+	pdfDoc.text(`Zip Code: ${zipcode}`, 10, 60);
+	pdfDoc.text(`Comment: ${comment}`, 10, 70);
 }

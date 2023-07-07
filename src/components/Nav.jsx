@@ -15,15 +15,15 @@ export default function Navigation() {
 			</div> */}
 			<nav className='drop-shadow-xl sticky bg-white text-white navmd:text-gray-700   navmd:bg-white px-4 sm:px-4 py-2.5 navmd:py-1  w-full  left-0  border-gray-200'>
 				<div className='lg:container  flex flex-wrap items-center justify-between navmd:justify-center mx-auto'>
-					<CustomLink to='Window-Project/' className=' mr-10 flex items-center'>
+					<CustomNavLink to='Window-Project/' className=' mr-10 flex items-center'>
 						<img className='h-16' src={companyLogo} />
-					</CustomLink>
+					</CustomNavLink>
 					<div className='flex navmd:order-2'>
-						<CustomLink
+						<CustomNavLink
 							className=' ml-2 hidden text-white transition items-center  bg-primary hover:bg-darkPrimary focus:ring-4 focus:outline-none focus:ring-blue-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 navmd:mr-0  navmd:block'
 							to='Window-Project/quote'>
 							Get Quote
-						</CustomLink>
+						</CustomNavLink>
 						<button
 							data-collapse-toggle='navbar-sticky'
 							type='button'
@@ -52,24 +52,24 @@ export default function Navigation() {
 						id='navbar-sticky'>
 						<ul className='flex flex-col p-4 mt-4 border border-gray-100 rounded-lg bg-gray-50 navmd:flex-row navmd:space-x-8 navmd:mt-0 navmd:text-sm navmd:font-medium navmd:border-0 navmd:bg-white '>
 							<li onClick={() => setIsNavOpen(false)}>
-								<CustomLink to='Window-Project/' aria-current='page'>
+								<CustomNavLink to='Window-Project/' aria-current='page'>
 									Home
-								</CustomLink>
+								</CustomNavLink>
 							</li>
 							<li onClick={() => setIsNavOpen(false)}>
-								<CustomLink to='Window-Project/about'> About Us</CustomLink>
+								<CustomNavLink to='Window-Project/about'> About Us</CustomNavLink>
 							</li>
 							<li onClick={() => setIsNavOpen(false)}>
-								<CustomLink to='Window-Project/products'> Our Products</CustomLink>
+								<CustomNavLink to='Window-Project/products'> Our Products</CustomNavLink>
 							</li>
 							<li onClick={() => setIsNavOpen(false)}>
-								<CustomLink to='Window-Project/payment'>Payment</CustomLink>
+								<CustomNavLink to='Window-Project/payment'>Payment</CustomNavLink>
 							</li>
 							<li onClick={() => setIsNavOpen(false)} className='navmd:hidden'>
-								<CustomLink to='Window-Project/quote'>Quote</CustomLink>
+								<CustomNavLink to='Window-Project/quote'>Quote</CustomNavLink>
 							</li>
 							<li onClick={() => setIsNavOpen(false)}>
-								<CustomLink to='Window-Project/contact'>Contact Us</CustomLink>
+								<CustomNavLink to='Window-Project/contact'>Contact Us</CustomNavLink>
 							</li>
 						</ul>
 					</div>
@@ -79,7 +79,7 @@ export default function Navigation() {
 	);
 }
 
-export function CustomLink({ children, to, ...props }) {
+function CustomNavLink({ children, to, ...props }) {
 	let resolved = useResolvedPath(to);
 	let match = useMatch({ path: resolved.pathname, end: true });
 
@@ -94,5 +94,15 @@ export function CustomLink({ children, to, ...props }) {
 				{children}
 			</Link>
 		</div>
+	);
+}
+
+export function CustomLink({ children, to, ...props }) {
+	let resolved = useResolvedPath(to);
+
+	return (
+		<Link to={to} {...props}>
+			{children}
+		</Link>
 	);
 }

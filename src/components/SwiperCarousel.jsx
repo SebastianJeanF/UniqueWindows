@@ -2,11 +2,11 @@
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination, EffectFade } from 'swiper';
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-
+import { CustomLink } from './Nav.jsx';
 import img1 from '../assets/custom/IMG_7335.jpg';
 import img2 from '../assets/custom/IMG_4891.jpg';
 import img3 from '../assets/custom/IMG_9800.jpg';
+import { motion } from 'framer-motion';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -113,13 +113,14 @@ const Slides = DATA.map((slide, k) => {
 					style={{ position: 'absolute', top: '40%', ...dynamicStyle(k) }}>
 					<div className='home block'>{slide.text}</div>
 					<p>
-						<motion.a
+						<motion.div
 							variants={title}
 							type='button'
-							href={slide.link}
-							className='home-carousel-button mt-5 transition hover:bg-orange-900'>
-							{slide.buttonText}
-						</motion.a>
+							className=' home-carousel-button mt-5 transition hover:bg-orange-900'>
+							<CustomLink className='text-white' to={slide.link}>
+								{slide.buttonText}
+							</CustomLink>
+						</motion.div>
 					</p>
 				</motion.div>
 			</div>

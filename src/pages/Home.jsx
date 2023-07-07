@@ -84,11 +84,11 @@ function Home() {
 										Our team of experienced professionals is dedicated to providing excellent
 										customer service, ensuring that every project is completed on time and within
 										budget. Whether you're building div new home or upgrading your existing windows,{' '}
-										<a
-											href='/Window-Project/products'
+										<CustomLink
+											to='/Window-Project/products'
 											className='text-blue-700 transition  underline'>
 											we have the expertise to help you achieve your goals.
-										</a>
+										</CustomLink>
 									</div>
 								</motion.div>
 								<motion.img
@@ -126,9 +126,11 @@ function Home() {
 										If you have any questions or would like to learn more about our window
 										installation services, we are always happy to hear from you. You can easily
 										contact us by visiting the{' '}
-										<a href='/Window-Project/contact' className='text-blue-700 underline'>
+										<CustomLink
+											to='/Window-Project/contact'
+											className='text-blue-700 underline inline-block'>
 											"Contact Us"
-										</a>{' '}
+										</CustomLink>{' '}
 										section of our website. Here, you'll find our phone number, and email address.
 										so you can choose the method of communication that works best for you.
 									</div>

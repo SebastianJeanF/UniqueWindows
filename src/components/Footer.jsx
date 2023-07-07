@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import companyLogo from '../assets/custom/logo-white.png';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { CustomLink } from './Nav.jsx';
 
 const container = {
 	hidden: { opacity: 0 },
@@ -16,7 +17,7 @@ const title = {
 };
 
 const ScrollArrow = () => {
-	// JS Source: https://www.geeksforgeeks.org/how-to-create-a-scroll-to-top-button-in-react-js/
+	// JS Source: https://www.geeksforgeeks.org/how-to-create-CustomLink-scroll-to-top-button-in-react-js/
 	const [showScroll, setShowScroll] = useState(false);
 
 	const checkScrollTop = () => {
@@ -34,7 +35,7 @@ const ScrollArrow = () => {
 	window.addEventListener('scroll', checkScrollTop);
 
 	return (
-		<a
+		<CustomLink
 			onClick={scrollTop}
 			// style={{ display: showScroll ? 'flex' : 'none' }}
 			className='cursor-pointer flex rounded-full bg-primary p-2 text-white shadow transition hover:bg-darkPrimary sm:p-3 lg:p-4'>
@@ -51,7 +52,7 @@ const ScrollArrow = () => {
 					clipRule='evenodd'
 				/>
 			</svg>
-		</a>
+		</CustomLink>
 	);
 };
 
@@ -82,27 +83,41 @@ const MainFooter4 = () => {
 					<motion.div variants={title}>
 						<ul className='mt-12 flex flex-wrap justify-center gap-6 md:gap-8 lg:mt-0 lg:justify-end lg:gap-12'>
 							<li>
-								<a className='text-gray-400/80 transition hover:text-gray-500/75' href='/'>
+								<CustomLink
+									className='text-gray-400/80 transition hover:text-gray-500/75'
+									to='/Window-Project/about'>
 									About Us
-								</a>
+								</CustomLink>
 							</li>
 
 							<li>
-								<a className='text-gray-400/80 transition hover:text-gray-500/75' href='/'>
+								<CustomLink
+									className='text-gray-400/80 transition hover:text-gray-500/75'
+									to='/Window-Project/products'>
 									Our Products
-								</a>
+								</CustomLink>
 							</li>
 
 							<li>
-								<a className='text-gray-400/80 transition hover:text-gray-500/75' href='/'>
+								<CustomLink
+									className='text-gray-400/80 transition hover:text-gray-500/75'
+									to='/Window-Project/payment'>
 									Payment
-								</a>
+								</CustomLink>
 							</li>
-
 							<li>
-								<a className='text-gray-400/80 transition hover:text-gray-500/75' href='/'>
+								<CustomLink
+									className='text-gray-400/80 transition hover:text-gray-500/75'
+									to='/Window-Project/quote'>
+									Quote
+								</CustomLink>
+							</li>
+							<li>
+								<CustomLink
+									className='text-gray-400/80 transition hover:text-gray-500/75'
+									to='/Window-Project/contact'>
 									Contact Us
-								</a>
+								</CustomLink>
 							</li>
 						</ul>
 					</motion.div>
@@ -115,8 +130,8 @@ const MainFooter4 = () => {
 					variants={title}
 					className='  mt-6 flex justify-center lg:justify-end gap-6 md:gap-8 '>
 					<li>
-						<a
-							href='/'
+						<CustomLink
+							to='/'
 							rel='noreferrer'
 							target='_blank'
 							className='text-gray-400/80 transition hover:text-gray-500/75'>
@@ -128,12 +143,12 @@ const MainFooter4 = () => {
 									clipRule='evenodd'
 								/>
 							</svg>
-						</a>
+						</CustomLink>
 					</li>
 
 					<li>
-						<a
-							href='/'
+						<CustomLink
+							to='/'
 							rel='noreferrer'
 							target='_blank'
 							className='text-gray-400/80 transition hover:text-gray-500/75'>
@@ -145,7 +160,7 @@ const MainFooter4 = () => {
 									clipRule='evenodd'
 								/>
 							</svg>
-						</a>
+						</CustomLink>
 					</li>
 				</motion.ul>
 			</motion.div>
