@@ -1273,20 +1273,19 @@ function ExteriorColorType({ data, selectedFrame }) {
 		roomsDispatch({ type: 'windowAttributes', exterior: data[num].fields.title });
 		setCurrent(temp);
 	}
-	const title = <div className='text-textPrimary font-bold text-2xl'>PVC Exterior Paint</div>;
+	const title = <div className='text-textPrimary font-bold text-2xl'>Exterior Paint</div>;
 	const body = (
 		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
 			<div>
 				<img></img>
 				<div className='mt-2'>
-					Introducing our PVC Exterior Paint, specially formulated to enhance and protect your
-					windows. Our PVC Exterior Paint is designed to adhere to the surface of PVC frames,
-					providing a durable and long-lasting finish. With a wide range of colors to choose from,
-					you can customize the look of your windows to match your style and complement your home's
-					exterior. Our high-quality paint offers excellent resistance to UV rays, fading, cracking,
-					and peeling, ensuring that your windows maintain their vibrant appearance for years to
-					come. Trust our PVC Exterior Paint to give your windows a fresh and appealing makeover
-					while protecting them from the elements.
+					Transform the look of your home with our exquisite exterior paint options for windows. We
+					offers a wide range of colors to suit any style and preference. From classic neutrals to
+					bold, vibrant shades, our high-quality paints are specifically formulated to withstand the
+					elements and provide long-lasting beauty. Enhance your curb appeal and make a statement
+					with windows that are not only functional but also visually stunning. Choose from our
+					extensive selection of exterior paint options and give your windows a fresh, eye-catching
+					finish.
 				</div>
 			</div>
 		</div>
@@ -1326,9 +1325,9 @@ function ExteriorColorType({ data, selectedFrame }) {
 			<div className='my-10'>
 				<div className='flex flex-row'>
 					<div>
-						<div className=' text-3xl'>PVC Exterior Color</div>
+						<div className=' text-3xl'>Exterior Color</div>
 						<div className='text-textPrimary'>
-							Choose what type of PVC exterior color you want for this window
+							Choose what type of exterior color you want for this window
 						</div>
 					</div>
 					<InformationCircleIcon
