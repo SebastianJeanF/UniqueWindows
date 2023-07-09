@@ -6,7 +6,7 @@ import { ref, uploadBytes, getDownloadURL, uploadString } from 'firebase/storage
 
 import customWindowImg from '../assets/quote/questionMark.png';
 
-import { QuoteSwiperContext, QuoteRoomsContext, QuoteWindowContext } from '../context/Context';
+import { QuoteRoomsContext } from '../context/Context';
 import { createClient } from 'contentful';
 import { createClient as createAuthClient } from 'contentful-management';
 
@@ -163,9 +163,12 @@ const getFileResolution = (file) => {
 		reader.readAsDataURL(file);
 	});
 };
+const capitalizeFirstLetter = (string) => `${string.charAt(0).toUpperCase()}${string.slice(1)}`;
 
-async function generatePDF(room) {
-	const doc = new jsPDF();
+async function generatePDF(room, event) {
+	let doc = new jsPDF();
+	addFormToPDF(event, doc);
+
 	let initialized = false;
 	for (let window of room.windows) {
 		if (initialized) doc.addPage();
@@ -174,9 +177,11 @@ async function generatePDF(room) {
 		let yPos = 20;
 		const pageHeight = doc.internal.pageSize.height - 20;
 
-		for (const [key, value] of Object.entries(window)) {
+		for (let [key, value] of Object.entries(window)) {
 			console.log(key, value);
 			console.log(key == 'photo');
+
+			if (key == 'img') continue;
 
 			if (value && (key == 'photo' || key == 'customPhotoReference')) {
 				if (key == 'photo') doc.text(20, yPos, 'Project Photo References:');
@@ -206,6 +211,8 @@ async function generatePDF(room) {
 					doc.addPage();
 					yPos = 20; // Reset the vertical position for the new page
 				}
+				key = capitalizeFirstLetter(key);
+				// value = capitalizeFirstLetter(value);
 				doc.text(20, yPos, `${key}: ${value}`);
 				yPos += 10;
 			}
@@ -216,7 +223,7 @@ async function generatePDF(room) {
 }
 
 async function FirebaseForm(pdfDoc) {
-	const imageRef = ref(storage, `Sebastian/pdfs/${Math.random().toString(18).substring(2)}.pdf`);
+	const imageRef = ref(storage, `contact/images/${Math.random().toString(18).substring(2)}.pdf`);
 	// const pdfBlob = await fetch(pdfDoc.output('blob')).then((response) => response.blob());
 	// uploadBytes(imageRef, pdfBlob, { contentType: 'application/pdf' }).then((snapshot) => {
 	// 	getDownloadURL(snapshot.ref).then((url) => {
@@ -227,6 +234,28 @@ async function FirebaseForm(pdfDoc) {
 
 	return new Promise((resolve, reject) => {
 		uploadString(imageRef, pdfContent, 'base64', { contentType: 'application/pdf' })
+			.then((snapshot) => {
+				getDownloadURL(snapshot.ref)
+					.then((url) => {
+						console.log(url);
+						resolve(url); // Resolve the Promise with the URL
+					})
+					.catch((error) => {
+						reject(error); // Reject the Promise if there's an error with getDownloadURL
+					});
+			})
+			.catch((error) => {
+				reject(error); // Reject the Promise if there's an error with uploadString
+			});
+	});
+}
+export async function FirebaseFileUpload(file) {
+	console.log('This is selectedFile', file);
+
+	const storageRef = ref(storage, 'some-child-test');
+
+	return new Promise((resolve, reject) => {
+		uploadBytes(storageRef, file)
 			.then((snapshot) => {
 				getDownloadURL(snapshot.ref)
 					.then((url) => {
@@ -262,7 +291,7 @@ async function ContentfulUpload(link) {
 				file: {
 					'en-US': {
 						contentType: 'application/pdf',
-						fileName: `${new Date().getDate()}testingJuly6th.pdf`,
+						fileName: `${new Date().getDate()}.pdf`,
 						upload: link,
 					},
 				},
@@ -278,10 +307,14 @@ async function ContentfulUpload(link) {
 		}
 		const mediaAssetId = asset.sys.id;
 		console.log('This is asset id', mediaAssetId);
+		const day = new Date().getDate();
+		const month = new Date().getMonth();
+		const time = new Date().getTime();
+
 		const entry = await env.createEntry('quotes', {
 			fields: {
 				title: {
-					'en-US': 'User Quote',
+					'en-US': `${month}-${day} Quote${time}}`,
 				},
 				quote: {
 					'en-US': {
@@ -299,8 +332,7 @@ async function ContentfulUpload(link) {
 		await entry.publish();
 
 		// Retrieve the URL of the published Asset
-		const assetUrl = `https:${asset.fields.file['en-US'].url}`;
-		console.log('PDF uploaded to Contentful:', assetUrl);
+		// const assetUrl = `https:${asset.fields.file['en-US'].url}`;
 		console.log('SUCCESS');
 	} catch (error) {
 		console.log(error);
@@ -322,13 +354,10 @@ export function PDFGenerator() {
 	);
 }
 
-export async function completeQuote(event) {
-	const selectedRoom = useContext(QuoteRoomsContext).selectedRoom;
-
+export async function completeQuote(event, selectedRoom) {
 	event.preventDefault();
-	let pdfDoc = generatePDF(selectedRoom);
-	addFormToPDF(event, pdfDoc);
-	let link = FirebaseForm(pdfDdoc);
+	let pdfDoc = await generatePDF(selectedRoom, event);
+	let link = await FirebaseForm(pdfDoc);
 	ContentfulUpload(link);
 	// Save the PDF
 }
@@ -352,4 +381,5 @@ function addFormToPDF(event, pdfDoc) {
 	pdfDoc.text(`City: ${city}`, 10, 50);
 	pdfDoc.text(`Zip Code: ${zipcode}`, 10, 60);
 	pdfDoc.text(`Comment: ${comment}`, 10, 70);
+	pdfDoc.addPage();
 }

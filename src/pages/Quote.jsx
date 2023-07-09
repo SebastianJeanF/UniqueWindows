@@ -19,10 +19,11 @@ import img1 from '../assets/custom/IMG_5162.jpg';
 import { storage } from '../components/Firebase.js';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
+// IMAGES
 import customWindowImg from '../assets/quote/questionMark.png';
 import widthImg from '../assets/quote/measure-width-windows.png';
 import heightImg from '../assets/quote/measure-height-windows.png';
-
+import imgPVC from '../assets/quote/PVC-Trim.png';
 import Masthead from '../components/NewMasthead';
 
 import { Dialog, Disclosure, Transition, Menu, Listbox } from '@headlessui/react';
@@ -59,6 +60,7 @@ import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import { scaleBetween } from 'parallax-controller';
+// import { isHtmlElement } from 'react-router-dom/dist/dom.js';
 
 const styles = {
 	all: {
@@ -248,7 +250,7 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 														? 'bg-green-100 hover:bg-green-200'
 														: 'bg-red-100 hover:bg-red-200'
 												} font-semibold text-textPrimary  text-center cursor-pointer duration-300`}>
-												<td className='border-gray-500 border-r  py-1 px-6'>Interior</td>
+												<td className='border-gray-500 border-r  py-1 px-6'>Interior Color</td>
 												<td className='py-1 px-6 font-medium'>{window.interior || message}</td>
 											</tr>
 											<tr
@@ -261,8 +263,21 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 														? 'bg-green-100 hover:bg-green-200'
 														: 'bg-red-100 hover:bg-red-200'
 												} font-semibold text-textPrimary  text-center cursor-pointer duration-300`}>
-												<td className='border-gray-500 border-r py-1 px-6'>Exterior</td>
+												<td className='border-gray-500 border-r py-1 px-6'>Exterior Color</td>
 												<td className='py-1 px-6 font-medium'>{window.exterior || message}</td>
+											</tr>
+											<tr
+												onClick={() => {
+													setCategoryFocus('Exterior');
+													changeMode();
+												}}
+												className={` ${
+													window.trim
+														? 'bg-green-100 hover:bg-green-200'
+														: 'bg-red-100 hover:bg-red-200'
+												} font-semibold text-textPrimary  text-center cursor-pointer duration-300`}>
+												<td className='border-gray-500 border-r py-1 px-6'>Trim Color</td>
+												<td className='py-1 px-6 font-medium'>{window.trim || message}</td>
 											</tr>
 											<tr
 												onClick={() => {
@@ -444,6 +459,10 @@ function WindowType({ data, setAvailableFrameTypes }) {
 		setCurrent(newArray);
 	}
 	function change(num) {
+		if (current[num]) {
+			return;
+		}
+
 		console.log('Window Type change triggiered');
 		let temp = [...current];
 		let price = selectedWindow.price;
@@ -453,8 +472,10 @@ function WindowType({ data, setAvailableFrameTypes }) {
 			roomsDispatch({ type: 'changeCustom', custom: false });
 		}
 		for (let i = 0; i < temp.length; i++) {
-			if (num == data.length) {
+			if (num == i && num == data.length) {
 				roomsDispatch({ type: 'changeCustom', custom: true });
+				roomsDispatch({ type: 'windowAttributes', windowType: 'Custom' });
+
 				// setPreviousIndex(num);
 				temp[num] = true;
 				console.log(temp);
@@ -465,19 +486,14 @@ function WindowType({ data, setAvailableFrameTypes }) {
 					wood: null,
 					img: customWindowImg,
 				});
-				return;
-			}
-			if (num == i) {
+			} else if (num == i) {
 				let APIitem = data[i].fields;
 
 				index = i;
 				temp[index] = true;
 
-				if (previousIndex != null) {
-					price -= data[previousIndex].fields.price;
-				}
 				price += data[index].fields.price;
-				roomsDispatch({ type: 'windowAttributes', price: price });
+				console.log(price);
 				if (APIitem) {
 					roomsDispatch({ type: 'windowAttributes', img: APIitem.image.fields.file.url });
 					roomsDispatch({ type: 'windowAttributes', windowType: APIitem.title });
@@ -492,12 +508,17 @@ function WindowType({ data, setAvailableFrameTypes }) {
 				});
 				setPreviousIndex(index);
 			} else if (temp[i] == true) {
-				temp[i] = undefined;
+				if (i != data.length) {
+					price -= data[i].fields.price;
+				}
+				temp[i] = false;
 			}
 		}
-
+		console.log(price);
+		roomsDispatch({ type: 'windowAttributes', price: price });
 		setCurrent(temp);
 	}
+	console.log(current);
 	const title = <div className='text-textPrimary font-bold text-2xl'>Window Types</div>;
 	const body = (
 		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
@@ -604,7 +625,7 @@ function WindowType({ data, setAvailableFrameTypes }) {
 				<motion.div
 					initial={{ opacity: 0 }}
 					whileInView={{ opacity: 1 }}
-					className='mt-4 md:mt-0 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
+					className='mt-4 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
 					{listItems}
 				</motion.div>
 			</div>
@@ -650,6 +671,9 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 	}
 
 	function change(num) {
+		if (current[num]) {
+			return;
+		}
 		let temp = [...current];
 		let price = selectedWindow.price;
 		let index;
@@ -717,7 +741,7 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 			<motion.div
 				initial={{ opacity: 0 }}
 				whileInView={{ opacity: 1 }}
-				className='mt-4 md:mt-0 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
+				className='mt-4 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
 				{listItems}
 				<div></div>
 			</motion.div>
@@ -756,11 +780,12 @@ function GrillesType() {
 		</div>
 	);
 }
-
-// Complete This one
-function Measurements() {
+function Measurements({ data }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
+	const [heightPrice, setHeightPrice] = useState(0);
+	const [widthPrice, setWidthPrice] = useState(0);
+
 	useEffect(() => {
 		initialize();
 	}, [selectedWindow]);
@@ -770,62 +795,127 @@ function Measurements() {
 		document.getElementById('height').value = selectedWindow.height;
 	};
 
+	const changeWidthPrice = (dimension) => {
+		let sizeIncrement;
+		let defaultSize;
+		let priceIncrement;
+		let price = selectedWindow.price;
+		for (let i = 0; i < data.length; i++) {
+			let item = data[i].fields;
+			if (item.dimension === 'Width') {
+				sizeIncrement = item.sizeIncrement;
+				defaultSize = item.defaultSize;
+				priceIncrement = item.priceIncrement;
+			}
+		}
+		price -= widthPrice;
+
+		let newIncrement =
+			Math.floor((dimension - (defaultSize - sizeIncrement / 2)) / sizeIncrement) * priceIncrement;
+		price += newIncrement;
+
+		console.log(
+			'sizeIncrement',
+			sizeIncrement,
+			'defaultSize',
+			defaultSize,
+			'priceIncrement',
+			priceIncrement,
+			'newIncrement',
+			newIncrement,
+			'widthPrice',
+			widthPrice,
+			'price',
+			price
+		);
+
+		setWidthPrice((prev) => newIncrement - prev);
+		roomsDispatch({ type: 'windowAttributes', price: price });
+		roomsDispatch({ type: 'windowAttributes', width: dimension });
+	};
+
+	const changeHeightPrice = (dimension) => {
+		let sizeIncrement;
+		let defaultSize;
+		let priceIncrement;
+		let price = selectedWindow.price;
+		for (let i = 0; i < data.length; i++) {
+			let item = data[i].fields;
+			if (item.dimension === 'Height') {
+				sizeIncrement = item.sizeIncrement;
+				defaultSize = item.defaultSize;
+				priceIncrement = item.priceIncrement;
+			}
+		}
+		price -= heightPrice;
+
+		let newIncrement =
+			Math.floor((dimension - (defaultSize - sizeIncrement) / 2) / sizeIncrement) * priceIncrement;
+		price += newIncrement;
+
+		console.log();
+		setHeightPrice(newIncrement - heightPrice);
+		roomsDispatch({ type: 'windowAttributes', price: price });
+		roomsDispatch({ type: 'windowAttributes', height: dimension });
+	};
+
 	return (
 		<div className='my-10'>
-			<div className=' text-3xl'>Measurement Pattern (Optional)</div>
+			<div className='text-3xl'>Measurement Pattern (Optional)</div>
 			<div className='text-textPrimary'>Tell us the measurement of your window if you have it</div>
 			<div className='flex flex-row justify-around gap-4 items-center p-2 mt-5'>
-				<img className='w-32 md:w-48' src={widthImg}></img>
-				<div className=''>
+				<img className='w-28 md:w-48' src={widthImg} alt='Width' />
+				<div>
 					<div>
-						<div className='font-semibold leading-6 '>Measure the Width</div>
+						<div className='font-semibold leading-6'>Measure the Width</div>
 						<div className='text-textPrimary'>
 							Measure the width of the window at the center. Extend your tape measure horizontally,
 							from trim to trim
 						</div>
 					</div>
-					<div className=' mt-2 flex flex-col'>
+					<div className='mt-2 flex flex-col'>
 						<label className='text-textPrimary'>Width (Inches)</label>
-						<input
+						<select
 							value={selectedWindow.width}
-							onChange={(e) => {
-								const EMPTYINPUT = -1;
-								roomsDispatch({ type: 'windowAttributes', width: e.target.value || EMPTYINPUT });
-								// roomsDispatch({ type: 'windowAttributes', price: (e.target.value / 4) * 20 });
-							}}
-							type='text'
+							onChange={(e) => changeWidthPrice(parseInt(e.target.value))}
 							name='width'
 							id='width'
-							className='h-14 w-56 border border-gray-400  px-4 bg-white'
-							placeholder='inches'
-						/>
+							className='h-14 w-56 border border-gray-400 px-4 bg-white'>
+							<option value=''>Select Width</option>
+							{Array.from(Array(240).keys()).map((increment) => (
+								<option key={increment} value={increment + 1}>
+									{increment + 1}
+								</option>
+							))}
+						</select>
 					</div>
 				</div>
 			</div>
 			<div className='flex flex-row justify-around gap-4 items-center p-2 mt-5'>
-				<img className='w-32 md:w-48' src={heightImg}></img>
-				<div className=''>
+				<img className='w-28 md:w-48' src={heightImg} alt='Height' />
+				<div>
 					<div>
-						<div className='font-semibold leading-6 '>Measure the Height</div>
+						<div className='font-semibold leading-6'>Measure the Height</div>
 						<div className='text-textPrimary'>
 							Measure the height of the window at the center. Extend your tape measure vertically,
 							from trim to trim
 						</div>
 					</div>
-					<div className=' mt-2 flex flex-col'>
+					<div className='mt-2 flex flex-col'>
 						<label className='text-textPrimary'>Height (Inches)</label>
-						<input
+						<select
 							value={selectedWindow.height}
-							onChange={(e) => {
-								const EMPTYINPUT = -1;
-								roomsDispatch({ type: 'windowAttributes', height: e.target.value || EMPTYINPUT });
-							}}
-							type='text'
+							onChange={(e) => changeHeightPrice(parseInt(e.target.value))}
 							name='height'
 							id='height'
-							className='h-14 w-56 border border-gray-400  px-4 bg-white'
-							placeholder='inches'
-						/>
+							className='h-14 w-56 border border-gray-400 px-4 bg-white'>
+							<option value=''>Select Height</option>
+							{Array.from(Array(240).keys()).map((increment) => (
+								<option key={increment} value={increment + 1}>
+									{increment + 1}
+								</option>
+							))}
+						</select>
 					</div>
 				</div>
 			</div>
@@ -833,14 +923,153 @@ function Measurements() {
 		</div>
 	);
 }
+// function Measurements({ data }) {
+// 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
+// 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
+// 	const [heightPrice, setHeightPrice] = useState(0);
+// 	const [widthPrice, setWidthPrice] = useState(0);
+
+// 	useEffect(() => {
+// 		initialize();
+// 	}, [selectedWindow]);
+
+// 	const initialize = () => {
+// 		document.getElementById('width').value = selectedWindow.width;
+// 		document.getElementById('height').value = selectedWindow.height;
+// 	};
+
+// 	const changeWidthPrice = (dimension) => {
+// 		let sizeIncrement;
+// 		let defaultSize;
+// 		let priceIncrement;
+// 		let price = selectedWindow.price;
+// 		for (let i = 0; i < data.length; i++) {
+// 			let item = data[i].fields;
+// 			console.log(item);
+// 			if (item.dimension == 'Width') {
+// 				sizeIncrement = item.sizeIncrement;
+// 				defaultSize = item.defaultSize;
+// 				priceIncrement = item.priceIncrement;
+// 			}
+// 		}
+// 		price -= widthPrice;
+
+// 		let newIncrement =
+// 			Math.floor((dimension - (defaultSize - sizeIncrement) / 2) / sizeIncrement) * priceIncrement;
+// 		price += newIncrement;
+// 		// roomsDispatch({ type: 'windowAttributes', price: price });
+// 		setWidthPrice(newIncrement - widthPrice);
+// 	};
+// 	const changeHeightPrice = (dimension) => {
+// 		let sizeIncrement;
+// 		let defaultSize;
+// 		let priceIncrement;
+// 		let price = selectedWindow.price;
+// 		for (let i = 0; i < data.length; i++) {
+// 			let item = data[i].fields;
+// 			console.log(item);
+// 			if (item.dimension == 'Height') {
+// 				sizeIncrement = item.sizeIncrement;
+// 				defaultSize = item.defaultSize;
+// 				priceIncrement = item.priceIncrement;
+// 			}
+// 		}
+// 		price -= heightPrice;
+
+// 		let newIncrement =
+// 			Math.floor((dimension - (defaultSize - sizeIncrement) / 2) / sizeIncrement) * priceIncrement;
+// 		price += newIncrement;
+
+// 		// roomsDispatch({ type: 'windowAttributes', price: price });
+// 		setHeightPrice(newIncrement - heightPrice);
+// 	};
+// 	const handleWidthInput = (e) => {
+// 		const inputValue = e.target.value;
+// 		const numericValue = inputValue.replace(/\D/g, ''); // Remove non-numeric characters
+// 		const EMPTY_INPUT = -1;
+
+// 		if (numericValue) {
+// 			changeWidthPrice(numericValue);
+// 		}
+
+// 		roomsDispatch({ type: 'windowAttributes', width: numericValue || EMPTY_INPUT });
+// 	};
+
+// 	const handleHeightInput = (e) => {
+// 		const inputValue = e.target.value;
+// 		const numericValue = inputValue.replace(/\D/g, ''); // Remove non-numeric characters
+// 		const EMPTY_INPUT = -1;
+
+// 		if (numericValue) {
+// 			changeHeightPrice(numericValue);
+// 		}
+
+// 		roomsDispatch({ type: 'windowAttributes', height: numericValue || EMPTY_INPUT });
+// 	};
+// 	return (
+// 		<div className='my-10'>
+// 			<div className=' text-3xl'>Measurement Pattern (Optional)</div>
+// 			<div className='text-textPrimary'>Tell us the measurement of your window if you have it</div>
+// 			<div className='flex flex-row justify-around gap-4 items-center p-2 mt-5'>
+// 				<img className='w-28 md:w-48' src={widthImg}></img>
+// 				<div className=''>
+// 					<div>
+// 						<div className='font-semibold leading-6 '>Measure the Width</div>
+// 						<div className='text-textPrimary'>
+// 							Measure the width of the window at the center. Extend your tape measure horizontally,
+// 							from trim to trim
+// 						</div>
+// 					</div>
+// 					<div className=' mt-2 flex flex-col'>
+// 						<label className='text-textPrimary'>Width (Inches)</label>
+// 						<input
+// 							value={selectedWindow.width}
+// 							onChange={(e) => handleWidthInput(e)}
+// 							type='text'
+// 							name='width'
+// 							id='width'
+// 							className='h-14 w-56 border border-gray-400  px-4 bg-white'
+// 							placeholder='inches'
+// 						/>
+// 					</div>
+// 				</div>
+// 			</div>
+// 			<div className='flex flex-row justify-around gap-4 items-center p-2 mt-5'>
+// 				<img className='w-28 md:w-48' src={heightImg}></img>
+// 				<div className=''>
+// 					<div>
+// 						<div className='font-semibold leading-6 '>Measure the Height</div>
+// 						<div className='text-textPrimary'>
+// 							Measure the height of the window at the center. Extend your tape measure vertically,
+// 							from trim to trim
+// 						</div>
+// 					</div>
+// 					<div className=' mt-2 flex flex-col'>
+// 						<label className='text-textPrimary'>Height (Inches)</label>
+// 						<input
+// 							value={selectedWindow.height}
+// 							onChange={(e) => handleHeightInput(e)}
+// 							type='text'
+// 							name='height'
+// 							id='height'
+// 							className='h-14 w-56 border border-gray-400  px-4 bg-white'
+// 							placeholder='inches'
+// 						/>
+// 					</div>
+// 				</div>
+// 			</div>
+// 			<div className='mt-5 flex justify-evenly'></div>
+// 		</div>
+// 	);
+// }
 
 function FileUploadForm({ fileCategory }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 
 	const [selectedFiles, setSelectedFiles] = useState([]);
-	console.log(selectedFiles);
 	const [dragging, setDragging] = useState(false);
+	const [errorMessage, setErrorMessage] = useState('');
 
 	useEffect(() => {
 		initialize();
@@ -880,9 +1109,18 @@ function FileUploadForm({ fileCategory }) {
 			}
 			return;
 		}
+		const acceptedFormats = ['image/jpeg', 'image/png', 'image/gif'];
 		const selectedFileArray = Array.from(uploadedFile);
+
+		const validFiles = selectedFileArray.filter((file) => acceptedFormats.includes(file.type));
+
+		if (validFiles.length === 0) {
+			setErrorMessage('Invalid file format. Please select a valid image file.');
+			return;
+		}
+
 		setSelectedFiles((prevSelectedFiles) => {
-			let newList = [...prevSelectedFiles, ...selectedFileArray];
+			let newList = [...prevSelectedFiles, ...validFiles];
 			if (fileCategory == 'customPhotoReference') {
 				roomsDispatch({ type: 'changeCustomPhotoReference', files: newList });
 			}
@@ -891,6 +1129,7 @@ function FileUploadForm({ fileCategory }) {
 			}
 			return newList;
 		});
+		setErrorMessage('');
 	};
 
 	const handleFileChange = (event) => {
@@ -924,6 +1163,7 @@ function FileUploadForm({ fileCategory }) {
 	// const [fileInputId] = useState('photos' + fileCategory);
 	return (
 		<form>
+			{errorMessage && <p className='mt-4 text-red-500'>{errorMessage}</p>}
 			<div
 				className={`mt-4 p-4 border-2 border-dashed ${dragging ? 'bg-gray-100' : 'bg-white'}`}
 				onDragOver={handleDragOver}
@@ -1116,6 +1356,9 @@ function FrameType({ availableFrameTypes, data }) {
 	}
 
 	function change(num) {
+		if (current[num]) {
+			return;
+		}
 		let temp = [...current];
 		let price = selectedWindow.price;
 		let index;
@@ -1262,6 +1505,9 @@ function ExteriorColorType({ data, selectedFrame }) {
 	}
 
 	function change(num) {
+		if (current[num]) {
+			return;
+		}
 		let temp = [...current];
 		for (let i = 0; i < temp.length; i++) {
 			if (num == i) {
@@ -1273,19 +1519,28 @@ function ExteriorColorType({ data, selectedFrame }) {
 		roomsDispatch({ type: 'windowAttributes', exterior: data[num].fields.title });
 		setCurrent(temp);
 	}
-	const title = <div className='text-textPrimary font-bold text-2xl'>Exterior Paint</div>;
+	function clear() {
+		const newArray = current.map((element, index) => {
+			return false;
+		});
+		setCurrent(newArray);
+		roomsDispatch({ type: 'windowAttributes', exterior: 'Plain' });
+	}
+
+	const title = <div className='text-textPrimary font-bold text-2xl'>PVC Trim</div>;
 	const body = (
 		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
 			<div>
-				<img></img>
+				<img src={imgPVC}></img>
 				<div className='mt-2'>
-					Transform the look of your home with our exquisite exterior paint options for windows. We
-					offers a wide range of colors to suit any style and preference. From classic neutrals to
-					bold, vibrant shades, our high-quality paints are specifically formulated to withstand the
-					elements and provide long-lasting beauty. Enhance your curb appeal and make a statement
-					with windows that are not only functional but also visually stunning. Choose from our
-					extensive selection of exterior paint options and give your windows a fresh, eye-catching
-					finish.
+					Introducing our PVC Trim, specially formulated to enhance and protect your windows. Our
+					PVC Trim is designed to adhere to the surface of window frames, providing a durable and
+					long-lasting finish. With a wide range of colors to choose from, you can customize the
+					look of your windows to match your style and complement your home's exterior. Our
+					high-quality paint offers excellent resistance to UV rays, fading, cracking, and peeling,
+					ensuring that your windows maintain their vibrant appearance for years to come. Trust our
+					PVC Trim to give your windows a fresh and appealing makeover while protecting them from
+					the elements.
 				</div>
 			</div>
 		</div>
@@ -1333,11 +1588,17 @@ function ExteriorColorType({ data, selectedFrame }) {
 					<InformationCircleIcon
 						onClick={() => setModalState(true)}
 						className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
+					<button
+						onClick={() => clear()}
+						type='button'
+						className='hidden bg-white hover:bg-gray-100 ml-4 border-slate-500 border-2 h-10 p-2 rounded '>
+						Deselect
+					</button>
 				</div>
 				{/* <div className='mt-5 grid grid-cols-2 quotesm:grid-cols-3 quotemd:grid-cols-4 quotelg:grid-cols-5  xl:grid-cols-6  gap-4'>
   				{listItems}
   			</div> */}
-				<div className='mt-4 md:mt-0 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
+				<div className='mt-4  grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
 					{listItems}
 				</div>
 			</div>
@@ -1345,12 +1606,13 @@ function ExteriorColorType({ data, selectedFrame }) {
 	);
 }
 
-function PVCType({ data, selectedFrame }) {
+function TrimCategory({ data, selectedFrame }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	const [modalState, setModalState] = useState(false);
 
 	const [current, setCurrent] = useState([...Array(data.length)]);
+	const [toggleTrim, setToggleTrim] = useState(null);
 	useEffect(() => {
 		initialize();
 	}, [selectedWindow]);
@@ -1358,7 +1620,7 @@ function PVCType({ data, selectedFrame }) {
 	function initialize() {
 		const newArray = current.map((element, index) => {
 			let APIitem = data[index].fields;
-			if (selectedWindow.exterior == APIitem.title) {
+			if (selectedWindow.trim == APIitem.title) {
 				return true;
 			}
 			return false;
@@ -1367,6 +1629,9 @@ function PVCType({ data, selectedFrame }) {
 	}
 
 	function change(num) {
+		if (current[num]) {
+			return;
+		}
 		let temp = [...current];
 		for (let i = 0; i < temp.length; i++) {
 			if (num == i) {
@@ -1375,23 +1640,38 @@ function PVCType({ data, selectedFrame }) {
 				temp[i] = undefined;
 			}
 		}
-		roomsDispatch({ type: 'windowAttributes', exterior: data[num].fields.title });
+		roomsDispatch({ type: 'windowAttributes', trim: data[num].fields.title });
 		setCurrent(temp);
 	}
-	const title = <div className='text-textPrimary font-bold text-2xl'>PVC Exterior Paint</div>;
+
+	function toggle(toggle) {
+		setToggleTrim(toggle);
+		if (!toggle) {
+			roomsDispatch({ type: 'windowAttributes', trim: 'None' });
+			clear();
+		}
+	}
+	function clear() {
+		const newArray = current.map((element, index) => {
+			return false;
+		});
+		setCurrent(newArray);
+	}
+
+	const title = <div className='text-textPrimary font-bold text-2xl'>PVC Trim</div>;
 	const body = (
 		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
 			<div>
-				<img></img>
+				<img className='mx-auto p-10' src={imgPVC}></img>
 				<div className='mt-2'>
-					Introducing our PVC Exterior Paint, specially formulated to enhance and protect your
-					windows. Our PVC Exterior Paint is designed to adhere to the surface of PVC frames,
-					providing a durable and long-lasting finish. With a wide range of colors to choose from,
-					you can customize the look of your windows to match your style and complement your home's
-					exterior. Our high-quality paint offers excellent resistance to UV rays, fading, cracking,
-					and peeling, ensuring that your windows maintain their vibrant appearance for years to
-					come. Trust our PVC Exterior Paint to give your windows a fresh and appealing makeover
-					while protecting them from the elements.
+					Introducing our PVC Trim, specially formulated to enhance and protect your windows. Our
+					PVC Trim is designed to adhere to the surface of window frames, providing a durable and
+					long-lasting finish. With a wide range of colors to choose from, you can customize the
+					look of your windows to match your style and complement your home's exterior. Our
+					high-quality paint offers excellent resistance to UV rays, fading, cracking, and peeling,
+					ensuring that your windows maintain their vibrant appearance for years to come. Trust our
+					PVC Trim to give your windows a fresh and appealing makeover while protecting them from
+					the elements.
 				</div>
 			</div>
 		</div>
@@ -1407,7 +1687,7 @@ function PVCType({ data, selectedFrame }) {
 					current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
 				}  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 bg-white`}>
 				<img className='h-24' src={item.fields.image.fields.file.url} />
-				<div className='text-textPrimary text-center '>{item.fields.title}</div>
+				<div className='text-textPrimary text-center leading-tight'>{item.fields.title}</div>
 			</motion.div>
 		) : (
 			<motion.div
@@ -1415,42 +1695,84 @@ function PVCType({ data, selectedFrame }) {
 				whileInView={{ opacity: 1 }}
 				key={index}
 				className={` 
-			  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 opacity-50 bg-gray-200`}>
+			  transition  border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 opacity-50 bg-gray-200`}>
 				<div className='text-sm text-textPrimary font-bold'>Unavailable</div>
 
 				<img className='h-24' src={item.fields.image.fields.file.url} />
-				<div className='text-textPrimary text-center '>{item.fields.title}</div>
+				<div className='text-textPrimary text-center leading-tight'>{item.fields.title}</div>
 			</motion.div>
 		)
 	);
-
-	function removeEvenItems(array) {
-		return array.filter((_, index) => index % 2 !== 0);
-	}
-	const newArray = removeEvenItems(listItems);
 	return (
 		<>
-			<ItemsModal openState={[modalState, setModalState]} title={title} body={body}></ItemsModal>
+			<motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}>
+				<ItemsModal openState={[modalState, setModalState]} title={title} body={body}></ItemsModal>
 
-			<div className='my-10'>
-				<div className='flex flex-row'>
-					<div>
-						<div className=' text-3xl'>PVC Exterior Color</div>
-						<div className='text-textPrimary'>
-							Choose what type of PVC exterior color you want for this window
+				<div className='my-10'>
+					<div className='flex flex-row'>
+						<div>
+							<div className=' text-3xl'>Trim Option</div>
+							<div className='text-textPrimary'>
+								Would you like to have a PVC trim with your window?
+							</div>
+						</div>
+						<InformationCircleIcon
+							onClick={() => setModalState(true)}
+							className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
+						<button
+							onClick={() => clear()}
+							type='button'
+							className='hidden bg-white hover:bg-gray-100 ml-4 border-slate-500 border-2 h-10 p-2 rounded '>
+							Deselect
+						</button>
+					</div>
+
+					<div className='mt-5 grid grid-cols-2 gap-4'>
+						<div
+							key={0}
+							onClick={() => toggle(false)}
+							className={` ${
+								toggleTrim == false ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
+							}  transition border-solid font-medium  border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 p-2 bg-white`}>
+							<div className=' text-3xl text-textPrimary'>No Trim</div>
+						</div>
+						<div
+							key={1}
+							onClick={() => toggle(true)}
+							className={` ${
+								toggleTrim ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
+							}  transition border-solid font-medium  border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 p-2 bg-white`}>
+							<div className=' text-3xl text-textPrimary'>Yes Trim</div>
 						</div>
 					</div>
-					<InformationCircleIcon
-						onClick={() => setModalState(true)}
-						className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
 				</div>
-				{/* <div className='mt-5 grid grid-cols-2 quotesm:grid-cols-3 quotemd:grid-cols-4 quotelg:grid-cols-5  xl:grid-cols-6  gap-4'>
-  				{listItems}
-  			</div> */}
-				<div className='mt-4 md:mt-0 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
-					{newArray}
-				</div>
-			</div>
+			</motion.div>
+			{toggleTrim && (
+				<motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}>
+					<ItemsModal
+						openState={[modalState, setModalState]}
+						title={title}
+						body={body}></ItemsModal>
+
+					<div className='my-10'>
+						<div className='flex flex-row'>
+							<div>
+								<div className=' text-3xl'>Trim Color</div>
+								<div className='text-textPrimary'>
+									Choose what type of trim color you want for this window
+								</div>
+							</div>
+							{/* <InformationCircleIcon
+								onClick={() => setModalState(true)}
+								className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon> */}
+						</div>
+
+						<div className='mt-4 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
+							{listItems}
+						</div>
+					</div>
+				</motion.div>
+			)}
 		</>
 	);
 }
@@ -1481,19 +1803,19 @@ function InteriorColorType({ data, selectedFrame }) {
 	}
 
 	function change(num) {
+		if (current[num]) {
+			return;
+		}
 		let temp = [...current];
-		let price = selectedWindow.price;
+		let price = 0;
 
 		for (let i = 0; i < temp.length; i++) {
 			if (num == i) {
 				temp[i] = true;
 			} else if (temp[i] == true) {
+				price -= data[i].fields.price;
 				temp[i] = undefined;
 			}
-		}
-
-		if (previousIndex != null) {
-			price -= data[previousIndex].fields.price;
 		}
 		price += data[num].fields.price;
 		roomsDispatch({ type: 'windowAttributes', price: price });
@@ -1529,7 +1851,7 @@ function InteriorColorType({ data, selectedFrame }) {
 					current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
 				}  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 bg-white`}>
 				<img className='h-24' src={item.fields.image.fields.file.url} />
-				<div className='text-textPrimary text-center '>{item.fields.title}</div>
+				<div className='text-textPrimary text-center leading-tight'>{item.fields.title}</div>
 			</motion.div>
 		) : (
 			<motion.div
@@ -1537,11 +1859,11 @@ function InteriorColorType({ data, selectedFrame }) {
 				whileInView={{ opacity: 1 }}
 				key={index}
 				className={` 
-			  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 opacity-50 bg-gray-200`}>
+			  transition  border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 opacity-50 bg-gray-200`}>
 				<div className='text-sm text-textPrimary font-bold'>Unavailable</div>
 
 				<img className='h-24' src={item.fields.image.fields.file.url} />
-				<div className='text-textPrimary text-center '>{item.fields.title}</div>
+				<div className='text-textPrimary text-center leading-tight'>{item.fields.title}</div>
 			</motion.div>
 		)
 	);
@@ -1564,87 +1886,14 @@ function InteriorColorType({ data, selectedFrame }) {
 				{/* <div className='mt-5 grid grid-cols-2 quotesm:grid-cols-3 quotemd:grid-cols-4 quotelg:grid-cols-5  xl:grid-cols-6  gap-4'>
   				{listItems}
   			</div> */}
-				<div className='mt-4 md:mt-0 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
+				<div className='mt-4 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
 					{listItems}
 				</div>
 			</div>
 		</>
 	);
 }
-function TrimType({ data, selectedFrame }) {
-	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
-	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 
-	const [current, setCurrent] = useState([...Array(data.length)]);
-	const [previousIndex, setPreviousIndex] = useState(null);
-
-	useEffect(() => {
-		initialize();
-	}, [selectedWindow]);
-
-	function initialize() {
-		const newArray = current.map((element, index) => {
-			let APIitem = data[index].fields;
-			if (selectedWindow.interior == APIitem.title) {
-				setPreviousIndex(index);
-
-				return true;
-			}
-			return false;
-		});
-		setCurrent(newArray);
-	}
-
-	function change(num) {
-		let temp = [...current];
-		let price = selectedWindow.price;
-
-		for (let i = 0; i < temp.length; i++) {
-			if (num == i) {
-				temp[i] = true;
-			} else if (temp[i] == true) {
-				temp[i] = undefined;
-			}
-		}
-
-		if (previousIndex != null) {
-			price -= data[previousIndex].fields.price;
-		}
-		price += data[num].fields.price;
-		roomsDispatch({ type: 'windowAttributes', price: price });
-
-		roomsDispatch({ type: 'windowAttributes', interior: data[num].fields.title });
-		setCurrent(temp);
-	}
-
-	const listItems = data.map((item, index) =>
-		item.fields[selectedFrame] ? (
-			<motion.div
-				initial={{ opacity: 0 }}
-				whileInView={{ opacity: 1 }}
-				key={index}
-				onClick={() => change(index)}
-				className={` ${
-					current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
-				}  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 bg-white`}>
-				<img className='h-24' src={item.fields.image.fields.file.url} />
-				<div className='text-textPrimary text-center '>{item.fields.title}</div>
-			</motion.div>
-		) : null
-	);
-	return (
-		<div id='Interior' className='my-10'>
-			<div className=' text-3xl'>Interior Color</div>
-			<div className='text-textPrimary'>
-				Choose what type of interior color you want for this window
-			</div>
-			{/* <div className='mt-5 grid grid-cols-2 quotesm:grid-cols-3 quotemd:grid-cols-4 quotelg:grid-cols-5  xl:grid-cols-6  gap-4'>
-				{listItems}
-			</div> */}
-			<div className='mt-5 flex flex-wrap gap-4'>{listItems}</div>
-		</div>
-	);
-}
 function ModalCreateRoom({ openState, currentState, mode }) {
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	let setIsModalOpen = openState[1];
@@ -1875,6 +2124,9 @@ const ManagementSection = ({ quoteModeState }) => {
 	const [current, setCurrent] = useState([...Array(rooms.length)]);
 
 	function change(num) {
+		if (current[num]) {
+			return;
+		}
 		let temp = [...current];
 		for (let i = 0; i < temp.length; i++) {
 			if (num == i) {
@@ -2096,17 +2348,6 @@ export default function Quote() {
 		'en-US': richTextField,
 	};
 
-	const contentfulData = {
-		fields: {
-			info: {
-				'en-US': 'React Data (Again)',
-			},
-			boolean: {
-				'en-US': true,
-			},
-			html: htmlField,
-		},
-	};
 	//test
 	let client;
 	let userClient;
@@ -2168,6 +2409,8 @@ export default function Quote() {
 		'quoteInteriorColor',
 		'quoteExteriorColor',
 		'quoteWindowCustom',
+		'quoteTrimColor',
+		'quoteMeasurement',
 	];
 
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
@@ -2228,7 +2471,7 @@ export default function Quote() {
 
 					<div className='text-textPrimary'>Build your product by selecting options below</div>
 				</div>
-				<div className=''>
+				<div className='hidden'>
 					<button
 						type='button'
 						onClick={() => {
@@ -2312,8 +2555,8 @@ export default function Quote() {
 									<ExteriorColorType
 										data={data[3]}
 										selectedFrame={selectedFrame}></ExteriorColorType>
-									<PVCType data={data[3]} selectedFrame={selectedFrame}></PVCType>
-									<Measurements></Measurements>
+									<TrimCategory data={data[5]} selectedFrame={selectedFrame}></TrimCategory>
+									<Measurements data={data[6]}></Measurements>
 
 									<div className='border p-2 flex flex-col justify-center border-gray-500 bg-white'>
 										<div className='font-bold text-textPrimary text-center  text-2xl '>

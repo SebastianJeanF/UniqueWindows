@@ -1,7 +1,6 @@
 import { createContext, useState, useRef, useEffect } from 'react';
 import { useImmerReducer } from 'use-immer';
 import { json } from 'react-router-dom';
-
 export const PriceContext = createContext();
 export const TypeContext = createContext();
 export const QuoteSwiperContext = createContext();
@@ -16,9 +15,10 @@ function Context({ children }) {
 		type: null,
 		interior: null,
 		frame: null,
-		exterior: null,
+		exterior: 'Plain',
 		height: null,
 		width: null,
+		trim: null,
 		quantity: 1,
 		price: 0,
 		custom: false,
@@ -120,8 +120,10 @@ function Context({ children }) {
 					if (selectedWindow.quantity > 1) selectedWindow.quantity--;
 				} else if (action.increase) {
 					selectedWindow.quantity++;
-				} else if (action.price) {
+				} else if (action.price < 0 || action.price > 0) {
 					selectedWindow.price = action.price;
+				} else if (action.trim) {
+					selectedWindow.trim = action.trim;
 				} else console.log('ERROR in windowAttributes reducer');
 
 				return;
@@ -159,7 +161,7 @@ function Context({ children }) {
 			case 'changeRoomPrice': {
 				const selectedRoom = getSelectedRoom(draft);
 				selectedRoom.price = action.price;
-				w;
+
 				return;
 			}
 			case 'changeCustom': {

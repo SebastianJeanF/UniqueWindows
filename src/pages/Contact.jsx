@@ -5,6 +5,7 @@ import axios from 'axios';
 import img1 from '../assets/custom/IMG_5162.jpg';
 // import nodemailer from '/home/temp/project/node_modules/nodemailer/lib/nodemailer.js';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
+import { FirebaseFileUpload } from '../components/UploadQuote.jsx';
 
 import React from 'react';
 import { useRef, useState } from 'react';
@@ -14,44 +15,10 @@ function Form({ setIsCompleted }) {
 	const firstName = 'Hello, world';
 	const [selectedFile, setSelectedFile] = useState(null);
 
-	const emailResend = () => {
-		const resend = new Resend('re_VoUwKPjo_8TLurnknC6k4iES7kkwgMUXJ');
-
-		resend.sendEmail({
-			from: 'sebeld9@gmail.com',
-			to: 'sebeld9@gmail.com',
-			subject: 'hello world',
-			react: <Email firstName='John' product='MyApp' />,
-		});
-	};
-
-	// const emailNodeMailer = () => {
-	// 	const transporter = nodemailer.createTransport({
-	// 		host: 'smtp.ethereal.email',
-	// 		port: 587,
-	// 		secure: false,
-	// 		auth: {
-	// 			user: 'my_user',
-	// 			pass: 'my_password',
-	// 		},
-	// 	});
-
-	// 	const emailHtml = render(<Email url='https://example.com' />);
-
-	// 	const options = {
-	// 		from: 'you@example.com',
-	// 		to: 'user@gmail.com',
-	// 		subject: 'hello world',
-	// 		html: emailHtml,
-	// 	};
-
-	// 	transporter.sendMail(options);
-	// };
-
-	const sendData = (e) => {
+	const sendData = async (e) => {
 		const data = new FormData(e.target);
-		// console.log(`data is ${data.forEach((e) => console.log(e))}`);
-		data.append('image', selectedFile);
+		const selectedFileUrl = await FirebaseFileUpload(selectedFile);
+		data.append('image', selectedFileUrl);
 		data.append('TestProp', 'testProp');
 
 		console.log(data.get('image'));
@@ -69,23 +36,24 @@ function Form({ setIsCompleted }) {
 			.catch((error) => console.log(error));
 
 		// Source: https://stackoverflow.com/questions/66491991/formsubmit-co-form-not-working-in-reactapp
-		// fetch('https://formsubmit.co/ajax/1a2b11a3a911d60a02b691a125a1d5c0', {
-		// 	method: 'POST',
-		// 	headers: {
-		// 		'Content-Type': 'application/json',
-		// 		Accept: 'application/json',
-		// 	},
-		// 	body: JSON.stringify(Object.fromEntries(new FormData(e.target))),
-		// });
+		fetch('https://formsubmit.co/ajax/1a2b11a3a911d60a02b691a125a1d5c0', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Accept: 'application/json',
+			},
+			body: JSON.stringify(Object.fromEntries(new FormData(e.target))),
+		});
 	};
 
 	const submitForm = (e) => {
 		e.preventDefault();
 		// Source: https://levelup.gitconnected.com/react-forms-usestate-vs-useref-5cb584cc19fd
-		// sendData(e);
-		emailPlunk();
+
+		sendData(e);
 		setIsCompleted(true);
 	};
+
 	return (
 		<div className=' bg-gray-100 lg:bg-inherit p-6  lg:mt-4 w-full   '>
 			<div className=' container mx-auto  lg:w-4/5  lg:max-w-screen-lg'>
