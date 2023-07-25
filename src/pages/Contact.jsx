@@ -5,7 +5,7 @@ import axios from 'axios';
 import img1 from '../assets/custom/IMG_5162.jpg';
 // import nodemailer from '/home/temp/project/node_modules/nodemailer/lib/nodemailer.js';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
-import { FirebaseFileUpload } from '../components/UploadQuote.jsx';
+import { uploadContactForm, FirebaseFileUpload } from '../components/UploadQuote.jsx';
 
 import React from 'react';
 import { useRef, useState } from 'react';
@@ -17,11 +17,14 @@ function Form({ setIsCompleted }) {
 
 	const sendData = async (e) => {
 		const data = new FormData(e.target);
-		const selectedFileUrl = await FirebaseFileUpload(selectedFile);
-		data.append('image', selectedFileUrl);
-		data.append('TestProp', 'testProp');
+		if (selectedFile) {
+			const selectedFileUrl = await FirebaseFileUpload(selectedFile);
+			data.append('Image', selectedFileUrl);
+		}
 
-		console.log(data.get('image'));
+		// data.append('TestProp', 'testProp');
+
+		// console.log(data.get('image'));
 		axios.defaults.headers.post['Content-Type'] = 'application/json';
 		axios
 			// Source: https://axios-http.com/docs/multipart
@@ -44,6 +47,8 @@ function Form({ setIsCompleted }) {
 			},
 			body: JSON.stringify(Object.fromEntries(new FormData(e.target))),
 		});
+
+		uploadContactForm(data);
 	};
 
 	const submitForm = (e) => {
@@ -78,49 +83,50 @@ function Form({ setIsCompleted }) {
 									onSubmit={(e) => submitForm(e)}
 									className='flex flex-col gap-4 gap-y-2 text-sm'>
 									<div className=''>
-										<label for='first_name'>
+										<label for='First_Name'>
 											<span className='text-red-500'>* </span>First Name
 										</label>
 										<input
 											type='text'
-											name='first_name'
-											id='first_name'
+											name='First_Name'
+											id='First_Name'
 											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
 											required
 										/>
 									</div>
 									<div className=''>
-										<label for='last_name'>
+										<label for='Last_Name'>
 											<span className='text-red-500'>* </span>Last Name
 										</label>
 										<input
 											type='text'
-											name='last_name'
-											id='last_name'
+											name='Last_Name'
+											id='Last_Name'
 											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
 											required
 										/>
 									</div>
 									<div className=''>
-										<label for='number'>
+										<label for='Phone_Number'>
 											<span className='text-red-500'>* </span>Phone Number
 										</label>
 										<input
-											type='text'
-											name='number'
-											id='number'
+											type='tel'
+											// pattern='[0-9]{3}-[0-9]{3}-[0-9]{4}'
+											name='Phone_Number'
+											id='Phone_Number'
 											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
 											required
 										/>
 									</div>
 									<div className=''>
-										<label for='email'>
+										<label for='Email'>
 											<span className='text-red-500'>* </span>Email Address
 										</label>
 										<input
 											type='text'
-											name='email'
-											id='email'
+											name='Email'
+											id='Email'
 											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
 											placeholder='email@domain.com'
 											required
@@ -128,13 +134,13 @@ function Form({ setIsCompleted }) {
 									</div>
 
 									<div className=''>
-										<label for='address'>
+										<label for='Address'>
 											<span className='text-red-500'>* </span>Address / Street
 										</label>
 										<input
 											type='text'
-											name='address'
-											id='address'
+											name='Address'
+											id='Address'
 											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
 											placeholder=''
 											required
@@ -142,13 +148,13 @@ function Form({ setIsCompleted }) {
 									</div>
 
 									<div className=''>
-										<label for='city'>
+										<label for='City'>
 											<span className='text-red-500'>* </span>City
 										</label>
 										<input
 											type='text'
-											name='city'
-											id='city'
+											name='City'
+											id='City'
 											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
 											placeholder=''
 											required
@@ -156,13 +162,13 @@ function Form({ setIsCompleted }) {
 									</div>
 
 									<div className=''>
-										<label for='zipcode'>
-											<span className='text-red-500'>* </span>Zip Code
+										<label for='ZIP_Code'>
+											<span className='text-red-500'>* </span>ZIP Code
 										</label>
 										<input
 											type='text'
-											name='zipcode'
-											id='zipcode'
+											name='ZIP_Code'
+											id='ZIP_Code'
 											className='transition-all flex items-center h-10 border mt-1 rounded px-4 w-full bg-gray-50'
 											placeholder=''
 											required
@@ -177,17 +183,16 @@ function Form({ setIsCompleted }) {
 											onChange={(e) => setSelectedFile(e.target.files[0])}
 											className='form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0
     focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none'
-											name='picture'
 											type='file'
 											id='formFile'
 										/>
 									</div>
 									<div className='navmd:col-span-5'>
-										<label for='comment'>Comments</label>
+										<label for='Comment'>Comments</label>
 										<input
 											type='text'
-											name='comment'
-											id='comment'
+											name='Comment'
+											id='Comment'
 											className='transition-all flex items-center h-10 border mt-1 rounded px-4 w-full bg-gray-50'
 											placeholder=''
 										/>

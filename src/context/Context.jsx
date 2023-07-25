@@ -13,17 +13,17 @@ function Context({ children }) {
 	let windowTemplate = {
 		img: null,
 		type: null,
-		interior: null,
+		custom: false,
 		frame: null,
+		interior: null,
 		exterior: 'Plain',
-		height: null,
-		width: null,
 		trim: null,
+		width: null,
+		height: null,
+		photo: null,
+		customTypePhotoReference: null,
 		quantity: 1,
 		price: 0,
-		custom: false,
-		photo: null,
-		customPhotoReference: null,
 	};
 	let roomTemplate = {
 		name: 'Blank',
@@ -171,8 +171,11 @@ function Context({ children }) {
 			}
 			case 'changeCustomPhotoReference': {
 				const selectedWindow = getSelectedWindow(draft);
-				selectedWindow.customPhotoReference = action.files;
-				console.log('selectedWindow.customPhotoReference: ', selectedWindow.customPhotoReference);
+				selectedWindow.customTypePhotoReference = action.files;
+				console.log(
+					'selectedWindow.customTypePhotoReference: ',
+					selectedWindow.customTypePhotoReference
+				);
 				return;
 			}
 			case 'changePhoto': {

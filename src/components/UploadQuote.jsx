@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-
+import { enumerate } from 'pythonic';
 import img1 from '../assets/custom/IMG_5162.jpg';
 import { storage } from '../components/Firebase.js';
 import { ref, uploadBytes, getDownloadURL, uploadString } from 'firebase/storage';
@@ -30,54 +30,13 @@ const authClient = createAuthClient({
 let htmlData = '<p>This is some <strong>rich HTML</strong> content.</p>';
 
 function createPDF() {
-	const doc = new jsPDF();
-	doc.text('Hello world!', 10, 10);
-	// doc.save('a4.pdf');
-	// return doc.output('datauristring');
-	return doc;
+	const pdfDoc = new jsPDF();
+	pdfDoc.text('Hello world!', 10, 10);
+	// pdfDoc.save('a4.pdf');
+	// return pdfDoc.output('datauristring');
+	return pdfDoc;
 }
-// const richTextField = {
-// 	nodeType: 'document',
-// 	data: {},
-// 	content: [
-// 		{
-// 			nodeType: 'paragraph',
-// 			data: {},
-// 			content: [
-// 				{
-// 					nodeType: 'text',
-// 					value: 'This is some rich text content.\n\n',
-// 					marks: [],
-// 					data: {},
-// 				},
-// 				{
-// 					nodeType: 'text',
-// 					value: 'This is some rich text content.',
-// 					marks: [{ type: 'bold' }],
-// 					data: {},
-// 				},
-// 				{
-// 					nodeType: 'text',
-// 					value: 'This is some rich text content.',
-// 					marks: [],
-// 					data: {},
-// 				},
-// 			],
-// 		},
-// 		{
-// 			nodeType: 'paragraph',
-// 			data: {},
-// 			content: [
-// 				{
-// 					nodeType: 'text',
-// 					value: 'This is some rich text content.',
-// 					marks: [],
-// 					data: {},
-// 				},
-// 			],
-// 		},
-// 	],
-// };
+
 documentToHtmlString(htmlData);
 const htmlField = {
 	// 'en-US': documentToHtmlString(htmlData),
@@ -165,61 +124,110 @@ const getFileResolution = (file) => {
 };
 const capitalizeFirstLetter = (string) => `${string.charAt(0).toUpperCase()}${string.slice(1)}`;
 
-async function generatePDF(room, event) {
-	let doc = new jsPDF();
-	addFormToPDF(event, doc);
+async function generatePDF(rooms, event) {
+	let pdfDoc = new jsPDF();
+	addFormToPDF(event, pdfDoc);
+	let title;
+	let yPos = 20;
+	let isFirstWindow = true;
+	let isFirstRoom = true;
+	title = 'Quote Description';
+	pdfDoc.setFont('helvetica', 'bold');
+	pdfDoc.setFontSize(20);
 
-	let initialized = false;
-	for (let window of room.windows) {
-		if (initialized) doc.addPage();
-		else initialized = true;
+	pdfDoc.text(title, getX(title, pdfDoc), yPos);
+	pdfDoc.setFontSize(16);
+	pdfDoc.setFont('helvetica', 'normal');
+	yPos += 15;
+	for (let [rIndex, room] of enumerate(rooms)) {
+		if (!isFirstRoom) {
+			pdfDoc.addPage();
+			yPos = 20;
+		} else isFirstRoom = false;
 
-		let yPos = 20;
-		const pageHeight = doc.internal.pageSize.height - 20;
+		isFirstWindow = true;
+		title = `Room: ${room.name}`;
+		pdfDoc.setFont('helvetica', 'bold');
+		pdfDoc.setFontSize(18);
 
-		for (let [key, value] of Object.entries(window)) {
-			console.log(key, value);
-			console.log(key == 'photo');
+		pdfDoc.text(title, getX(title, pdfDoc), yPos);
+		pdfDoc.setFontSize(16);
+		pdfDoc.setFont('helvetica', 'normal');
+		yPos += 20;
+		for (let [index, window] of enumerate(room.windows)) {
+			if (!isFirstWindow) {
+				pdfDoc.addPage();
+				yPos = 20;
+			} else isFirstWindow = false;
 
-			if (key == 'img') continue;
+			const pageHeight = pdfDoc.internal.pageSize.height - 20;
+			let title = `Window ${index + 1}`;
 
-			if (value && (key == 'photo' || key == 'customPhotoReference')) {
-				if (key == 'photo') doc.text(20, yPos, 'Project Photo References:');
-				else if (key == 'customPhotoReference')
-					doc.text(20, yPos, 'Custom Window Frame References: ');
-				yPos += 10;
-				for (let file of value) {
-					await getFileResolution(file)
-						.then((resolution) => {
-							const imageURL = URL.createObjectURL(file);
-							const width = 50;
-							const height = resolution.height * (width / resolution.width);
-							if (yPos + height > pageHeight) {
-								doc.addPage();
-								yPos = 20; // Reset the vertical position for the new page
-							}
-							doc.addImage(imageURL, 'JPEG', 20, yPos, width, height);
-							yPos += 10 + height;
-							console.log('Resolution:', resolution.width, 'x', resolution.height);
-						})
-						.catch((error) => {
-							console.error('Error:', error.message);
-						});
+			pdfDoc.text(title, getX(title, pdfDoc), yPos);
+			yPos += 15;
+			for (let [key, value] of Object.entries(window)) {
+				console.log(key, value);
+				console.log(key == 'photo');
+
+				if (key == 'img') continue;
+				if (key == 'customTypePhotoReference' && !value) continue;
+
+				if (value && (key == 'photo' || key == 'customPhotoReference')) {
+					if (key == 'photo') pdfDoc.text(20, yPos, 'Project Photo References:');
+					else if (key == 'customPhotoReference')
+						pdfDoc.text(20, yPos, 'Custom Window Frame References: ');
+					yPos += 10;
+					for (let file of value) {
+						await getFileResolution(file)
+							.then(async (resolution) => {
+								const imageURL = URL.createObjectURL(file);
+								const imageLink = await FirebaseFileUpload(file);
+								const width = 75;
+								const height = resolution.height * (width / resolution.width);
+								if (yPos + height > pageHeight) {
+									pdfDoc.addPage();
+									yPos = 20; // Reset the vertical position for the new page
+								}
+								pdfDoc.addImage(imageURL, 'JPEG', 20, yPos, width, height);
+								yPos += 10 + height;
+								const linkText = 'Project Photo Link';
+								addLinkToPDF(pdfDoc, yPos, linkText, imageLink);
+								yPos += 10 + height;
+								console.log('Resolution:', resolution.width, 'x', resolution.height);
+							})
+							.catch((error) => {
+								console.error('Error:', error.message);
+							});
+					}
+					continue;
 				}
-			} else {
 				if (yPos + 10 > pageHeight) {
-					doc.addPage();
+					pdfDoc.addPage();
 					yPos = 20; // Reset the vertical position for the new page
+				}
+				if (key == 'custom') {
+					key = 'Custom Type';
+					value = capitalizeFirstLetter(`${value}`);
+				}
+				if (key == 'height' || key == 'width') {
+					if (!value) value = 'N/A';
+					else value = `${value}in`;
+				}
+				if (key == 'price') {
+					value = `$${value}`;
+				}
+				if (key == 'interior' || key == 'exterior') {
+					key = `${key} Color`;
 				}
 				key = capitalizeFirstLetter(key);
 				// value = capitalizeFirstLetter(value);
-				doc.text(20, yPos, `${key}: ${value}`);
+				pdfDoc.text(20, yPos, `${key}: ${value}`);
 				yPos += 10;
 			}
 		}
 	}
 	// await Promise.all(promises);
-	return doc;
+	return pdfDoc;
 }
 
 async function FirebaseForm(pdfDoc) {
@@ -249,6 +257,16 @@ async function FirebaseForm(pdfDoc) {
 			});
 	});
 }
+
+function addLinkToPDF(pdfDoc, yPos, linkText, linkUrl) {
+	let x;
+	if (linkText == 'Project Photo Link') x = 20;
+	else x = getX(linkText, pdfDoc);
+	pdfDoc.setTextColor(128, 128, 128);
+	pdfDoc.textWithLink(linkText, x, yPos, { url: linkUrl, underline: true });
+	pdfDoc.setTextColor(255, 255, 255);
+}
+
 export async function FirebaseFileUpload(file) {
 	console.log('This is selectedFile', file);
 
@@ -272,7 +290,12 @@ export async function FirebaseFileUpload(file) {
 	});
 }
 
-async function ContentfulUpload(link) {
+async function ContentfulUpload(link, contentType) {
+	const day = new Date().getDate();
+	const month = new Date().getMonth();
+	const time = new Date().getTime();
+	let subTitle;
+
 	const userClient = createAuthClient({
 		accessToken: 'CFPAT-LGhcYfQLYGuJfheeSokUoWRLA5MUj6wxdr5vn5sTIOU',
 		space: 'dd68j6yxui75',
@@ -281,17 +304,23 @@ async function ContentfulUpload(link) {
 	const space = await userClient.getSpace('dd68j6yxui75');
 	const env = await space.getEnvironment('master');
 	console.log('env', env);
+	if (contentType == 'quotes') {
+		subTitle = 'quote';
+	} else if (contentType == 'contactFormSubmisssions') {
+		subTitle = 'contactForm';
+	}
+	const title = `(${month}-${day}) ${subTitle}-${Math.floor(time / 1000)}`;
 	try {
 		// env.createEntry('testUser', contentfulData);
 		const asset = await env.createAsset({
 			fields: {
 				title: {
-					'en-US': `Quote${Math.random().toString(15)}`,
+					'en-US': title,
 				},
 				file: {
 					'en-US': {
 						contentType: 'application/pdf',
-						fileName: `${new Date().getDate()}.pdf`,
+						fileName: `${title}.pdf`,
 						upload: link,
 					},
 				},
@@ -307,16 +336,13 @@ async function ContentfulUpload(link) {
 		}
 		const mediaAssetId = asset.sys.id;
 		console.log('This is asset id', mediaAssetId);
-		const day = new Date().getDate();
-		const month = new Date().getMonth();
-		const time = new Date().getTime();
 
-		const entry = await env.createEntry('quotes', {
+		const entry = await env.createEntry(contentType, {
 			fields: {
 				title: {
-					'en-US': `${month}-${day} Quote${time}}`,
+					'en-US': title,
 				},
-				quote: {
+				[subTitle]: {
 					'en-US': {
 						sys: {
 							type: 'Link',
@@ -344,7 +370,7 @@ export function PDFGenerator() {
 	const handleGeneratePDF = async () => {
 		let pdfDoc = await generatePDF(selectedRoom);
 		let link = await FirebaseForm(pdfDoc);
-		ContentfulUpload(link);
+		ContentfulUpload(link, 'quotes');
 	};
 
 	return (
@@ -354,13 +380,64 @@ export function PDFGenerator() {
 	);
 }
 
-export async function completeQuote(event, selectedRoom) {
-	event.preventDefault();
-	let pdfDoc = await generatePDF(selectedRoom, event);
+const getTextWidth = (text, pdfDoc) =>
+	(pdfDoc.getStringUnitWidth(text) * pdfDoc.internal.getFontSize()) / pdfDoc.internal.scaleFactor;
+const getX = (text, pdfDoc) => {
+	const textWidth = getTextWidth(text, pdfDoc);
+	const pageWidth = pdfDoc.internal.pageSize.getWidth();
+	return (pageWidth - textWidth) / 2;
+};
+export async function uploadContactForm(data) {
+	let pdfDoc = new jsPDF();
+	let title;
+	let yPos = 20;
+
+	title = 'Contact Form Description';
+	pdfDoc.setFont('helvetica', 'bold');
+	pdfDoc.setFontSize(20);
+
+	pdfDoc.text(title, getX(title, pdfDoc), yPos);
+	pdfDoc.setFontSize(16);
+	pdfDoc.setFont('helvetica', 'normal');
+	yPos += 15;
+	// console.log('This is data from contact form', data.getAll());
+
+	data.forEach(async (value, key) => {
+		if (!value) value = 'N/A';
+		if (key == 'Image') {
+			const linkText = 'Photo Link';
+			const linkUrl = value;
+			pdfDoc.text(`${key}:`, getX(`${key}:`, pdfDoc), yPos);
+			yPos += 10;
+			// await getFileResolution(value)
+			// 	.then((resolution) => {
+			// 		const imageURL = URL.createObjectURL(value);
+			// 		const width = 75;
+			// 		const height = resolution.height * (width / resolution.width);
+			// 		if (yPos + height > pageHeight) {
+			// 			pdfDoc.addPage();
+			// 			yPos = 20; // Reset the vertical position for the new page
+			// 		}
+			// 		pdfDoc.addImage(imageURL, 'JPEG', 20, yPos, width, height);
+			// 		yPos += 10 + height;
+			// 		console.log('Resolution:', resolution.width, 'x', resolution.height);
+			// 	})
+			// 	.catch((error) => {
+			// 		console.error('Error:', error.message);
+			// 	});
+			// yPos += 10;
+
+			addLinkToPDF(pdfDoc, yPos, linkText, linkUrl);
+		} else {
+			let entry = `${key}: ${value}`;
+			pdfDoc.text(entry, getX(entry, pdfDoc), yPos);
+			yPos += 10; // Ad}just the vertical position for the next line
+		}
+	});
 	let link = await FirebaseForm(pdfDoc);
-	ContentfulUpload(link);
-	// Save the PDF
+	ContentfulUpload(link, 'contactFormSubmisssions');
 }
+
 function addFormToPDF(event, pdfDoc) {
 	const fullName = event.target.elements.full_name.value;
 	const email = event.target.elements.email.value;
@@ -368,18 +445,57 @@ function addFormToPDF(event, pdfDoc) {
 	const city = event.target.elements.city.value;
 	const zipcode = event.target.elements.zipcode.value;
 	const comment = event.target.elements.comment.value;
+	let ypos = 15;
+	let xpos = 20;
+	const month = new Date().getMonth();
+	const time = new Date().getTime();
+	const day = new Date().getDate();
+	const months = [
+		'January',
+		'February',
+		'March',
+		'April',
+		'May',
+		'June',
+		'July',
+		'August',
+		'September',
+		'October',
+		'November',
+		'December',
+	];
 
+	const selectedMonthName = months[month];
 	// Create a new jsPDF instance
 
-	// Format the PDF content
-	pdfDoc.setFontSize(14);
-	pdfDoc.text('Quote Form', 10, 10);
-	pdfDoc.setFontSize(12);
-	pdfDoc.text(`Full Name: ${fullName}`, 10, 20);
-	pdfDoc.text(`Email: ${email}`, 10, 30);
-	pdfDoc.text(`Address: ${address}`, 10, 40);
-	pdfDoc.text(`City: ${city}`, 10, 50);
-	pdfDoc.text(`Zip Code: ${zipcode}`, 10, 60);
-	pdfDoc.text(`Comment: ${comment}`, 10, 70);
+	const title = `Quote Form | ${selectedMonthName} ${day} `;
+	pdfDoc.setFont('helvetica', 'bold');
+	pdfDoc.setFontSize(20);
+
+	pdfDoc.text(title, getX(title, pdfDoc), ypos);
+	pdfDoc.setFontSize(16);
+	pdfDoc.setFont('helvetica', 'normal');
+
+	ypos += 20;
+	pdfDoc.text(`Full Name: ${fullName}`, xpos, ypos);
+	ypos += 10;
+	pdfDoc.text(`Email: ${email}`, xpos, ypos);
+	ypos += 10;
+	pdfDoc.text(`Address: ${address}`, xpos, ypos);
+	ypos += 10;
+	pdfDoc.text(`City: ${city}`, xpos, ypos);
+	ypos += 10;
+	pdfDoc.text(`Zip Code: ${zipcode}`, xpos, ypos);
+	ypos += 10;
+	pdfDoc.text(`Comment: ${comment}`, xpos, ypos);
+
 	pdfDoc.addPage();
+}
+
+export async function completeQuote(event, rooms) {
+	event.preventDefault();
+	let pdfDoc = await generatePDF(rooms, event);
+	let link = await FirebaseForm(pdfDoc);
+	ContentfulUpload(link, 'quotes');
+	// Save the PDF
 }

@@ -23,6 +23,7 @@
 		"lodash.uniqueid": "^4.0.1",
 		"mdb-ui-kit": "^6.1.0",
 		"postcss": "^8.4.21",
+		"pythonic": "^2.0.3",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-icons": "^4.7.1",

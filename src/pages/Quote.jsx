@@ -286,7 +286,9 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 												}}
 												className='font-semibold text-textPrimary bg-green-100 hover:bg-green-200 text-center cursor-pointer duration-300'>
 												<td className='border-gray-500 border-r  py-1 px-6'>Width</td>
-												<td className='py-1 px-6 font-medium'>{window.width || 'Optional'}</td>
+												<td className='py-1 px-6 font-medium'>
+													{`${window.width} inches` || 'Optional'}
+												</td>
 											</tr>
 											<tr
 												onClick={() => {
@@ -295,7 +297,9 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 												}}
 												className='font-semibold text-textPrimary bg-green-100 hover:bg-green-200 text-center cursor-pointer duration-300'>
 												<td className='border-gray-500 border-r  py-1 px-6'>Height</td>
-												<td className='py-1 px-6 font-medium'>{window.height || 'Optional'}</td>
+												<td className='py-1 px-6 font-medium'>
+													{`${window.height} inches` || 'Optional'}
+												</td>
 											</tr>
 										</tbody>
 									</table>
@@ -432,11 +436,9 @@ function WindowType({ data, setAvailableFrameTypes }) {
 	}, [selectedWindow]);
 
 	function initialize() {
-		console.log('triggered');
 		const newArray = current.map((element, index) => {
 			if (index == current.length - 1) {
 				if (selectedWindow.custom) {
-					console.log('selectedWindow.type', selectedWindow.type);
 					return true;
 				} else {
 					return false;
@@ -463,7 +465,6 @@ function WindowType({ data, setAvailableFrameTypes }) {
 			return;
 		}
 
-		console.log('Window Type change triggiered');
 		let temp = [...current];
 		let price = selectedWindow.price;
 		let index;
@@ -476,9 +477,7 @@ function WindowType({ data, setAvailableFrameTypes }) {
 				roomsDispatch({ type: 'changeCustom', custom: true });
 				roomsDispatch({ type: 'windowAttributes', windowType: 'Custom' });
 
-				// setPreviousIndex(num);
 				temp[num] = true;
-				console.log(temp);
 				setCurrent(temp);
 				setAvailableFrameTypes({
 					fiberglass: null,
@@ -493,7 +492,6 @@ function WindowType({ data, setAvailableFrameTypes }) {
 				temp[index] = true;
 
 				price += data[index].fields.price;
-				console.log(price);
 				if (APIitem) {
 					roomsDispatch({ type: 'windowAttributes', img: APIitem.image.fields.file.url });
 					roomsDispatch({ type: 'windowAttributes', windowType: APIitem.title });
@@ -514,11 +512,9 @@ function WindowType({ data, setAvailableFrameTypes }) {
 				temp[i] = false;
 			}
 		}
-		console.log(price);
 		roomsDispatch({ type: 'windowAttributes', price: price });
 		setCurrent(temp);
 	}
-	console.log(current);
 	const title = <div className='text-textPrimary font-bold text-2xl'>Window Types</div>;
 	const body = (
 		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
@@ -749,7 +745,7 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 				<div className='mx-auto mt-4 text-textPrimary text-2xl underline'>
 					(Optional) Upload a reference
 				</div>{' '}
-				<FileUploadForm fileCategory={'customPhotoReference'}></FileUploadForm>
+				<FileUploadForm fileCategory={'customTypePhotoReference'}></FileUploadForm>
 			</div>
 		</div>
 	);
@@ -796,6 +792,9 @@ function Measurements({ data }) {
 	};
 
 	const changeWidthPrice = (dimension) => {
+		if (!dimension) {
+			return;
+		}
 		let sizeIncrement;
 		let defaultSize;
 		let priceIncrement;
@@ -809,14 +808,15 @@ function Measurements({ data }) {
 			}
 		}
 		price -= widthPrice;
-
-		let newIncrement =
-			Math.floor((dimension - (defaultSize - sizeIncrement / 2)) / sizeIncrement) * priceIncrement;
+		let multiplier = Math.floor((dimension - (defaultSize - sizeIncrement / 2)) / sizeIncrement);
+		let newIncrement = multiplier * priceIncrement;
 		price += newIncrement;
 
 		console.log(
 			'sizeIncrement',
 			sizeIncrement,
+			'multipler',
+			multiplier,
 			'defaultSize',
 			defaultSize,
 			'priceIncrement',
@@ -829,12 +829,15 @@ function Measurements({ data }) {
 			price
 		);
 
-		setWidthPrice((prev) => newIncrement - prev);
+		setWidthPrice(newIncrement);
 		roomsDispatch({ type: 'windowAttributes', price: price });
 		roomsDispatch({ type: 'windowAttributes', width: dimension });
 	};
 
 	const changeHeightPrice = (dimension) => {
+		if (!dimension) {
+			return;
+		}
 		let sizeIncrement;
 		let defaultSize;
 		let priceIncrement;
@@ -848,13 +851,12 @@ function Measurements({ data }) {
 			}
 		}
 		price -= heightPrice;
+		let multiplier = Math.floor((dimension - (defaultSize - sizeIncrement) / 2) / sizeIncrement);
+		let newIncrement = multiplier * priceIncrement;
 
-		let newIncrement =
-			Math.floor((dimension - (defaultSize - sizeIncrement) / 2) / sizeIncrement) * priceIncrement;
 		price += newIncrement;
 
-		console.log();
-		setHeightPrice(newIncrement - heightPrice);
+		setHeightPrice(newIncrement);
 		roomsDispatch({ type: 'windowAttributes', price: price });
 		roomsDispatch({ type: 'windowAttributes', height: dimension });
 	};
@@ -1063,7 +1065,7 @@ function Measurements({ data }) {
 // 	);
 // }
 
-function FileUploadForm({ fileCategory }) {
+export function FileUploadForm({ fileCategory }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 
@@ -1076,9 +1078,9 @@ function FileUploadForm({ fileCategory }) {
 	}, [selectedWindow]);
 
 	const initialize = () => {
-		if (fileCategory == 'customPhotoReference') {
-			if (selectedWindow.customPhotoReference) {
-				setSelectedFiles(selectedWindow.customPhotoReference);
+		if (fileCategory == 'customTypePhotoReference') {
+			if (selectedWindow.customTypePhotoReference) {
+				setSelectedFiles(selectedWindow.customTypePhotoReference);
 			} else {
 				setSelectedFiles([]);
 			}
@@ -1101,8 +1103,8 @@ function FileUploadForm({ fileCategory }) {
 			const updatedFiles = [...selectedFiles];
 			updatedFiles.splice(index, 1);
 			setSelectedFiles(updatedFiles);
-			if (fileCategory == 'customPhotoReference') {
-				roomsDispatch({ type: 'changeCustomPhotoReference', files: updatedFiles });
+			if (fileCategory == 'customTypePhotoReference') {
+				roomsDispatch({ type: 'changecustomTypePhotoReference', files: updatedFiles });
 			}
 			if (fileCategory == 'photo') {
 				roomsDispatch({ type: 'changePhoto', files: updatedFiles });
@@ -1121,8 +1123,8 @@ function FileUploadForm({ fileCategory }) {
 
 		setSelectedFiles((prevSelectedFiles) => {
 			let newList = [...prevSelectedFiles, ...validFiles];
-			if (fileCategory == 'customPhotoReference') {
-				roomsDispatch({ type: 'changeCustomPhotoReference', files: newList });
+			if (fileCategory == 'customTypePhotoReference') {
+				roomsDispatch({ type: 'changecustomTypePhotoReference', files: newList });
 			}
 			if (fileCategory == 'photo') {
 				roomsDispatch({ type: 'changePhoto', files: newList });
@@ -1509,13 +1511,17 @@ function ExteriorColorType({ data, selectedFrame }) {
 			return;
 		}
 		let temp = [...current];
+		let price = selectedWindow.price;
 		for (let i = 0; i < temp.length; i++) {
 			if (num == i) {
 				temp[i] = true;
 			} else if (temp[i] == true) {
+				price -= data[i].fields.price;
 				temp[i] = undefined;
 			}
 		}
+		price += data[num].fields.price;
+		roomsDispatch({ type: 'windowAttributes', price: price });
 		roomsDispatch({ type: 'windowAttributes', exterior: data[num].fields.title });
 		setCurrent(temp);
 	}
@@ -1625,6 +1631,12 @@ function TrimCategory({ data, selectedFrame }) {
 			}
 			return false;
 		});
+
+		if (selectedWindow.trim == 'None') {
+			setToggleTrim(false);
+		} else if (selectedWindow.trim) {
+			setToggleTrim(true);
+		}
 		setCurrent(newArray);
 	}
 
@@ -1633,6 +1645,7 @@ function TrimCategory({ data, selectedFrame }) {
 			return;
 		}
 		let temp = [...current];
+		let price = selectedWindow.price;
 		for (let i = 0; i < temp.length; i++) {
 			if (num == i) {
 				temp[i] = true;
@@ -1640,14 +1653,23 @@ function TrimCategory({ data, selectedFrame }) {
 				temp[i] = undefined;
 			}
 		}
+		price += data[num].fields.price;
+		roomsDispatch({ type: 'windowAttributes', price: price });
 		roomsDispatch({ type: 'windowAttributes', trim: data[num].fields.title });
 		setCurrent(temp);
 	}
 
 	function toggle(toggle) {
+		let price = selectedWindow.price;
+		for (let i = 0; i < current.length; i++) {
+			if (current[i]) {
+				price -= data[i].fields.price;
+			}
+		}
 		setToggleTrim(toggle);
 		if (!toggle) {
 			roomsDispatch({ type: 'windowAttributes', trim: 'None' });
+			roomsDispatch({ type: 'windowAttributes', price: price });
 			clear();
 		}
 	}
@@ -1655,6 +1677,7 @@ function TrimCategory({ data, selectedFrame }) {
 		const newArray = current.map((element, index) => {
 			return false;
 		});
+
 		setCurrent(newArray);
 	}
 
@@ -1776,7 +1799,6 @@ function TrimCategory({ data, selectedFrame }) {
 		</>
 	);
 }
-
 function InteriorColorType({ data, selectedFrame }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
@@ -1807,7 +1829,7 @@ function InteriorColorType({ data, selectedFrame }) {
 			return;
 		}
 		let temp = [...current];
-		let price = 0;
+		let price = selectedWindow.price;
 
 		for (let i = 0; i < temp.length; i++) {
 			if (num == i) {
@@ -1817,6 +1839,7 @@ function InteriorColorType({ data, selectedFrame }) {
 				temp[i] = undefined;
 			}
 		}
+
 		price += data[num].fields.price;
 		roomsDispatch({ type: 'windowAttributes', price: price });
 
@@ -1968,16 +1991,16 @@ function MyModal({ openState, mode, currentState }) {
 							className='inline-flex transition justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium  hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2'
 							onClick={() => {
 								setIsModalOpen(false);
-								roomsDispatch({ type: 'removeRoom' });
-							}}>
-							Yes
-						</button>
-						<button
-							className='inline-flex transition justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium  hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2'
-							onClick={() => {
-								setIsModalOpen(false);
 							}}>
 							Cancel
+						</button>
+						<button
+							className='inline-flex transition justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium   bg-green-300 hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2'
+							onClick={() => {
+								setIsModalOpen(false);
+								roomsDispatch({ type: 'removeRoom' });
+							}}>
+							Confirm
 						</button>
 					</div>
 				</div>
@@ -1993,19 +2016,19 @@ function MyModal({ openState, mode, currentState }) {
 				</div>
 				<div className='mt-4 flex flex-row justify-between'>
 					<button
+						className='inline-flex transition justify-center rounded-md border border-transparent bg-green-300 px-4 py-2 text-sm font-medium  hover:bg-green-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2'
+						onClick={() => {
+							setIsModalOpen(false);
+						}}>
+						Cancel
+					</button>
+					<button
 						className='inline-flex transition justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium  hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2'
 						onClick={() => {
 							setIsModalOpen(false);
 							roomsDispatch({ type: 'removeWindow' });
 						}}>
-						Yes
-					</button>
-					<button
-						className='inline-flex transition justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium  hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2'
-						onClick={() => {
-							setIsModalOpen(false);
-						}}>
-						Cancel
+						Confirm
 					</button>
 				</div>
 			</>
@@ -2174,10 +2197,37 @@ const ManagementSection = ({ quoteModeState }) => {
 		});
 		return total;
 	};
+	const getIncompleteFields = () => {
+		let incompleteFields = '';
+		let BAR = '_____________________________';
+		rooms.forEach((room) => {
+			incompleteFields += `${BAR}\nRoom: ${room.name}:\n`;
+			room.windows.forEach((window, i) => {
+				incompleteFields += `\nIn Window ${i}:\n`;
+				if (!window.type) {
+					incompleteFields += `Window type is missing\n`;
+				}
+				if (!window.frame) {
+					incompleteFields += `Frame is missing\n`;
+				}
+				if (!window.interior) {
+					incompleteFields += `Interior is missing\n`;
+				}
+				if (!window.exterior) {
+					incompleteFields += `Exterior is missing\n`;
+				}
+				if (!window.photo) {
+					incompleteFields += `Photo is missing\n`;
+				}
+			});
+		});
+		incompleteFields += BAR;
+		return incompleteFields;
+	};
 
 	const verifyQuote = () => {
 		if (rooms.length == 0) {
-			alert('Please create a room first');
+			alert('Please create a window first!');
 			return;
 		}
 
@@ -2185,7 +2235,7 @@ const ManagementSection = ({ quoteModeState }) => {
 			rooms.forEach((room) => {
 				const noWindowExists = room.selectedWindowId == -1;
 				if (noWindowExists) {
-					alert('Please create a window for each room');
+					alert('Please create at least one window for each room');
 					throw BreakException;
 				}
 			});
@@ -2199,12 +2249,13 @@ const ManagementSection = ({ quoteModeState }) => {
 					const allCompleted =
 						window.type && window.frame && window.interior && window.exterior && window.photo;
 					if (!allCompleted) {
-						alert('Please complete all required fields for each window');
 						throw BreakException;
 					}
 				});
 			});
 		} catch (e) {
+			alert(`Please complete all required fields for each window\n${getIncompleteFields()}`);
+
 			return;
 		}
 
@@ -2268,12 +2319,13 @@ const ManagementSection = ({ quoteModeState }) => {
 
 					<div className='mt-10 flex flex-wrap flex-row justify-center items-center bg-gray-100 '>
 						{RoomsSection}
-						<div
+						<button
+							type='button'
 							onClick={() => openModal('Create')}
 							className='hover:drop-shadow-lg hover:bg-green-100  bg-green-50 m-4  rounded-2xl border-solid border-2  border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2'>
-							<div className='text-textPrimary text-center text-xl font-semibold  '>Add Room</div>
+							<div className=' text-textPrimary text-center text-xl font-semibold  '>Add Room</div>
 							<PlusIcon></PlusIcon>
-						</div>
+						</button>
 					</div>
 					<hr className='mx-auto my-10 '></hr>
 					<div className=' flex flex-col justify-center items-center '>
@@ -2434,7 +2486,6 @@ export default function Quote() {
 			console.log(error);
 		}
 	}, []);
-
 	let initialized = false;
 	useEffect(() => {
 		if (initialized) {
@@ -2462,14 +2513,17 @@ export default function Quote() {
 
 	return (
 		<div id='' className='relative min-h-screen  '>
-			<Masthead img={img1} title={'Get Quote'}></Masthead>
+			{/* <Masthead img={img1} title={'Get Quote'}></Masthead> */}
 
 			{/* <div className='flex relative mb-20 justify-between align-center'> */}
 			<div className=' bg-white p-10'>
 				<div className='container text-center mx-auto py-5'>
-					<div className='text-2xl font-semibold text-gray-800 '>Design Options</div>
+					<div className='my-4 text-4xl font-semibold text-gray-800 '>Quote</div>
 
-					<div className='text-textPrimary'>Build your product by selecting options below</div>
+					<div className='text-textPrimary'>
+						Build your window by selecting options below, and we'll give you a price estimate of the
+						job!
+					</div>
 				</div>
 				<div className='hidden'>
 					<button

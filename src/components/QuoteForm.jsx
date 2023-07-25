@@ -89,6 +89,7 @@ const richTextField = {
 
 export function Form({ setMode }) {
 	const selectedRoom = useContext(QuoteRoomsContext).selectedRoom;
+	const rooms = useContext(QuoteRoomsContext).rooms;
 
 	documentToHtmlString(htmlData);
 	const htmlField = {
@@ -168,7 +169,6 @@ export function Form({ setMode }) {
 				<button
 					className='bg-primary transition hover:bg-darkPrimary text-white font-bold py-2 px-4 rounded'
 					onClick={() => {
-						PDFGenerator();
 						setMode('Manage');
 					}}>
 					{'< '}Go back
@@ -193,7 +193,7 @@ export function Form({ setMode }) {
 								<form
 									onSubmit={(e) => {
 										e.preventDefault();
-										completeQuote(e, selectedRoom);
+										completeQuote(e, rooms);
 										setMode('Complete');
 									}}
 									className='grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5'>
