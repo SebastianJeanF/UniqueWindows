@@ -19,13 +19,13 @@ function App() {
 					<Navigation className='top-0' />
 					<div className='relative'>
 						<Routes className='relative'>
-							<Route exact path='/Window-Project/' element={<Home className='relative' />} />
-							<Route path='/Window-Project/about' element={<About />} />
-							<Route path='/Window-Project/quote' element={<Quote />} />
-							<Route path='/Window-Project/contact' element={<Contact />} />
-							<Route path='/Window-Project/terms' element={<Terms />} />
-							<Route path='/Window-Project/products' element={<Products />} />
-							<Route path='/Window-Project/payment' element={<Payment />} />
+							<Route path='' element={<Home className='relative' />} />
+							<Route path='/about' element={<About />} />
+							<Route path='/quote' element={<Quote />} />
+							<Route path='/contact' element={<Contact />} />
+							<Route path='/terms' element={<Terms />} />
+							<Route path='/products' element={<Products />} />
+							<Route path='/payment' element={<Payment />} />
 						</Routes>
 					</div>
 					<Footer />

@@ -47,7 +47,12 @@ import {
 } from '@heroicons/react/24/outline';
 import { LuUploadCloud } from 'react-icons/lu';
 import { TiDelete } from 'react-icons/ti';
-import { QuoteSwiperContext, QuoteRoomsContext, QuoteWindowContext } from '../context/Context';
+import {
+	QuoteSwiperContext,
+	QuoteRoomsContext,
+	QuoteWindowContext,
+	QuoteCompleted,
+} from '../context/Context';
 
 import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
 import { Autoplay, Navigation, Pagination, EffectFade } from 'swiper';
@@ -1065,7 +1070,7 @@ function Measurements({ data }) {
 // 	);
 // }
 
-export function FileUploadForm({ fileCategory }) {
+function FileUploadForm({ fileCategory }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 
@@ -2466,11 +2471,12 @@ export default function Quote() {
 	];
 
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
-
+	const isQuoteComplete = useContext(QuoteCompleted).isQuoteComplete;
 	const selectedFrame = selectedWindow ? selectedWindow.frame : null;
 
-	const [mode, setMode] = useState('Customize');
-	const [transitionMode, setTransitionMode] = useState('Customize');
+	let initialMode = isQuoteComplete ? 'Complete' : 'Customize';
+	const [mode, setMode] = useState(initialMode);
+	const [transitionMode, setTransitionMode] = useState(initialMode);
 
 	const [data, setData] = useState([]);
 	const getTitles = useCallback(async () => {
@@ -2488,7 +2494,7 @@ export default function Quote() {
 	}, []);
 	let initialized = false;
 	useEffect(() => {
-		if (initialized) {
+		if (initialized || mode == 'Complete') {
 			return;
 		}
 		getTitles().then(() => {});
@@ -2497,6 +2503,16 @@ export default function Quote() {
 
 		initialized = true;
 	}, [getTitles]);
+
+	// useEffect(() => {
+	// 	console.log('EXPECTED OUTCOME, but isQuoteComplete value is: ', isQuoteComplete);
+
+	// 	if (isQuoteComplete) {
+	// 		setMode('Complete');
+	// 		setTransitionMode('Complete');
+	// 		return;
+	// 	}
+	// , });
 
 	// Solution Link: https://stackoverflow.com/questions/43441856/how-to-scroll-to-an-element
 	const interiorRef = useRef(null);

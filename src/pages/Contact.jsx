@@ -3,10 +3,10 @@ import Masthead from '../components/NewMasthead';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import img1 from '../assets/custom/IMG_5162.jpg';
-// import nodemailer from '/home/temp/project/node_modules/nodemailer/lib/nodemailer.js';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { uploadContactForm, FirebaseFileUpload } from '../components/UploadQuote.jsx';
-
+import { LuUploadCloud } from 'react-icons/lu';
+import { TiDelete } from 'react-icons/ti';
 import React from 'react';
 import { useRef, useState } from 'react';
 
@@ -186,6 +186,7 @@ function Form({ setIsCompleted }) {
 											type='file'
 											id='formFile'
 										/>
+										<FileUploadForm fileCategory={'_'}></FileUploadForm>
 									</div>
 									<div className='navmd:col-span-5'>
 										<label for='Comment'>Comments</label>
@@ -352,4 +353,125 @@ function Contact() {
 	);
 }
 
+function FileUploadForm({ fileCategory }) {
+	const [selectedFiles, setSelectedFiles] = useState([]);
+	const [dragging, setDragging] = useState(false);
+	const [errorMessage, setErrorMessage] = useState('');
+
+	function generateUniqueId() {
+		const randomId = Math.random().toString(36).substring(2);
+		return `id-${randomId}`;
+	}
+
+	const update = (uploadedFile) => {
+		if (!uploadedFile) {
+			const updatedFiles = [...selectedFiles];
+			updatedFiles.splice(index, 1);
+			setSelectedFiles(updatedFiles);
+			return;
+		}
+		const acceptedFormats = ['image/jpeg', 'image/png', 'image/gif'];
+		const selectedFileArray = Array.from(uploadedFile);
+
+		const validFiles = selectedFileArray.filter((file) => acceptedFormats.includes(file.type));
+
+		if (validFiles.length === 0) {
+			setErrorMessage('Invalid file format. Please select a valid image file.');
+			return;
+		}
+
+		setSelectedFiles((prevSelectedFiles) => {
+			let newList = [...prevSelectedFiles, ...validFiles];
+			return newList;
+		});
+		setErrorMessage('');
+	};
+
+	const handleFileChange = (event) => {
+		console.log(event.target);
+		console.log('handleFileChange', fileCategory);
+		const uploadedFile = event.target.files;
+		update(uploadedFile);
+	};
+
+	const handleDragOver = (event) => {
+		event.preventDefault();
+		setDragging(true);
+	};
+
+	const handleDragLeave = () => {
+		setDragging(false);
+	};
+
+	const handleDrop = (event) => {
+		event.preventDefault();
+		const uploadedFile = event.dataTransfer.files;
+		update(uploadedFile);
+		setDragging(false);
+	};
+
+	const handleFileDelete = (index) => {
+		update(null);
+	};
+	const fileInputId = generateUniqueId();
+	console.log('selectedFiles', selectedFiles);
+	// const [fileInputId] = useState('photos' + fileCategory);
+	return (
+		<form>
+			{errorMessage && <p className='mt-4 text-red-500'>{errorMessage}</p>}
+			<div
+				className={`mt-4 p-4 border-2 border-dashed ${dragging ? 'bg-gray-100' : 'bg-white'}`}
+				onDragOver={handleDragOver}
+				onDragLeave={handleDragLeave}
+				onDrop={handleDrop}>
+				<label htmlFor={fileInputId} className='mb-2'></label>
+				<input
+					type='file'
+					id={fileInputId}
+					name={fileInputId}
+					multiple
+					onChange={handleFileChange}
+					className='hidden'
+				/>
+				<div
+					onClick={() => {
+						console.log('id', document.getElementById(fileInputId));
+						document.getElementById(fileInputId).click();
+					}}
+					className='bg-gray-200 pt-4 cursor-pointer flex flex-col items-center border-4 border-dashed border-blue-200 text-xl'>
+					<LuUploadCloud style={{ transform: 'scale(2) ' }} className='mt-2'></LuUploadCloud>
+					<div className='py-2'>Drag and drop or click here</div>
+				</div>
+				{selectedFiles && selectedFiles.length > 0 && (
+					<p className='my-2'>Selected Files: {selectedFiles.length}</p>
+				)}
+				<div className='flex flex-wrap gap-4'>
+					{selectedFiles &&
+						selectedFiles.map((file, index) => (
+							<div key={index} className='border h-20 p-2 w-full flex flex-row items-center '>
+								{file.type.startsWith('image/') ? (
+									<img
+										src={URL.createObjectURL(file) || 'https://via.placeholder.com/150'}
+										alt={`Selected File ${index}`}
+										className='w-auto h-full rounded'
+									/>
+								) : (
+									<PhotoIcon className=' w-auto h-full rounded '></PhotoIcon>
+								)}
+
+								<div className=' mt-2 flex flex-row justify-between w-full items-center'>
+									<p className=' ml-5 text-center'>{file.name}</p>
+
+									<TiDelete
+										style={{ transform: 'scale(2.5)' }}
+										className='mx-2 cursor-pointer text-red-500 '
+										onClick={() => handleFileDelete(index)}></TiDelete>
+								</div>
+							</div>
+						))}
+				</div>
+			</div>
+		</form>
+	);
+}
 export default Contact;

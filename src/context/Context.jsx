@@ -6,6 +6,7 @@ export const TypeContext = createContext();
 export const QuoteSwiperContext = createContext();
 export const QuoteRoomsContext = createContext();
 export const QuoteWindowContext = createContext();
+export const QuoteCompleted = createContext();
 
 function Context({ children }) {
 	const [swiper, setSwiper] = useState(null);
@@ -200,22 +201,24 @@ function Context({ children }) {
 	const rooms = roomsState.rooms;
 
 	const reinitialized = useRef(false);
-
+	const [isQuoteComplete, setIsQuoteComplete] = useState(false);
 	return (
-		<QuoteSwiperContext.Provider value={{ swiper, setSwiper, reinitialized }}>
-			<QuoteRoomsContext.Provider
-				value={{
-					rooms,
-					roomsDispatch,
-					selectedRoom,
-					selectedRoomId,
-					selectedWindow,
-				}}>
-				{/* <QuoteWindowContext.Provider value={{ contextWindow, setContextWindow }}> */}
-				{children}
-				{/* </QuoteWindowContext.Provider> */}
-			</QuoteRoomsContext.Provider>
-		</QuoteSwiperContext.Provider>
+		<QuoteCompleted.Provider value={{ setIsQuoteComplete, isQuoteComplete }}>
+			<QuoteSwiperContext.Provider value={{ swiper, setSwiper, reinitialized }}>
+				<QuoteRoomsContext.Provider
+					value={{
+						rooms,
+						roomsDispatch,
+						selectedRoom,
+						selectedRoomId,
+						selectedWindow,
+					}}>
+					{/* <QuoteWindowContext.Provider value={{ contextWindow, setContextWindow }}> */}
+					{children}
+					{/* </QuoteWindowContext.Provider> */}
+				</QuoteRoomsContext.Provider>
+			</QuoteSwiperContext.Provider>
+		</QuoteCompleted.Provider>
 	);
 	// return <PriceContext.Provider value={{ price, changePrice }}>{children}</PriceContext.Provider>;
 }

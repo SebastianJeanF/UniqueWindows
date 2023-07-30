@@ -5,7 +5,7 @@ import { useState, useEffect, useContext } from 'react';
 import { storage } from '../components/Firebase.js';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { PDFGenerator, completeQuote } from '../components/UploadQuote.jsx';
-import { QuoteRoomsContext } from '../context/Context';
+import { QuoteRoomsContext, QuoteCompleted } from '../context/Context';
 
 function createPDF() {
 	const doc = new jsPDF();
@@ -90,7 +90,7 @@ const richTextField = {
 export function Form({ setMode }) {
 	const selectedRoom = useContext(QuoteRoomsContext).selectedRoom;
 	const rooms = useContext(QuoteRoomsContext).rooms;
-
+	const setIsQuoteComplete = useContext(QuoteCompleted).setIsQuoteComplete;
 	documentToHtmlString(htmlData);
 	const htmlField = {
 		// 'en-US': documentToHtmlString(htmlData),
@@ -195,6 +195,7 @@ export function Form({ setMode }) {
 										e.preventDefault();
 										completeQuote(e, rooms);
 										setMode('Complete');
+										setIsQuoteComplete(true);
 									}}
 									className='grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5'>
 									<div className='md:col-span-5'>
