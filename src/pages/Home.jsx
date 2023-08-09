@@ -48,7 +48,7 @@ function Home() {
 									<span class='icon arrow'></span>
 								</span>
 
-								<CustomLink className='button-text' to='/Window-Project/quote'>
+								<CustomLink className='button-text' to='/quote'>
 									Get Quote
 								</CustomLink>
 							</button>
@@ -84,9 +84,7 @@ function Home() {
 										Our team of experienced professionals is dedicated to providing excellent
 										customer service, ensuring that every project is completed on time and within
 										budget. Whether you're building div new home or upgrading your existing windows,{' '}
-										<CustomLink
-											to='/Window-Project/products'
-											className='text-blue-700 transition  underline'>
+										<CustomLink to='/products' className='text-blue-700 transition  underline'>
 											we have the expertise to help you achieve your goals.
 										</CustomLink>
 									</div>
@@ -126,9 +124,7 @@ function Home() {
 										If you have any questions or would like to learn more about our window
 										installation services, we are always happy to hear from you. You can easily
 										contact us by visiting the{' '}
-										<CustomLink
-											to='/Window-Project/contact'
-											className='text-blue-700 underline inline-block'>
+										<CustomLink to='/contact' className='text-blue-700 underline inline-block'>
 											"Contact Us"
 										</CustomLink>{' '}
 										section of our website. Here, you'll find our phone number, and email address.

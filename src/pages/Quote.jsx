@@ -17,8 +17,8 @@ import { Form } from '../components/QuoteForm.jsx';
 import { PDFGenerator } from '../components/UploadQuote.jsx';
 import img1 from '../assets/custom/IMG_5162.jpg';
 import { storage } from '../components/Firebase.js';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
+import { ref, uploadBytes, getDownloadURL, connectStorageEmulator } from 'firebase/storage';
+import { GiWindow } from 'react-icons/gi';
 // IMAGES
 import customWindowImg from '../assets/quote/questionMark.png';
 import widthImg from '../assets/quote/measure-width-windows.png';
@@ -173,10 +173,13 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 									</>
 								) : (
 									<>
-										<div className='my-2 h-60 w-full bg-gray-200'></div>
+										<div className='my-2 h-60 w-full bg-gray-200 flex flex-col'>
+											<GiWindow
+												style={{ transform: 'scale(12)' }}
+												className='mx-auto my-auto'></GiWindow>
+										</div>
 										<div className='border p-1 flex flex-col justify-center border-gray-500 bg-white'>
 											<div className='font-semibold text-xl text-textPrimary2'>
-												{' '}
 												Price: ${window.price}{' '}
 											</div>
 										</div>
@@ -292,7 +295,7 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 												className='font-semibold text-textPrimary bg-green-100 hover:bg-green-200 text-center cursor-pointer duration-300'>
 												<td className='border-gray-500 border-r  py-1 px-6'>Width</td>
 												<td className='py-1 px-6 font-medium'>
-													{`${window.width} inches` || 'Optional'}
+													{window.width ? `${window.width} inches` : 'Optional'}
 												</td>
 											</tr>
 											<tr
@@ -303,7 +306,7 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 												className='font-semibold text-textPrimary bg-green-100 hover:bg-green-200 text-center cursor-pointer duration-300'>
 												<td className='border-gray-500 border-r  py-1 px-6'>Height</td>
 												<td className='py-1 px-6 font-medium'>
-													{`${window.height} inches` || 'Optional'}
+													{window.height ? `${window.height} inches` : 'Optional'}
 												</td>
 											</tr>
 										</tbody>
@@ -367,6 +370,7 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 					style={{ minHeight: '24rem' }}
 					className='p-4 flex flex-col items-center justify-between mx-auto border shadow-xl border-gray-700 sticky windowModal  bg-white'>
 					<div className='text-textPrimary font-semibold text-3xl '> Add a window</div>
+					<GiWindow style={{ transform: 'scale(12)' }} className='my-auto'></GiWindow>
 				</div>
 			</SwiperSlide>
 		);
@@ -476,19 +480,20 @@ function WindowType({ data, setAvailableFrameTypes }) {
 
 		if (selectedWindow.custom) {
 			roomsDispatch({ type: 'changeCustom', custom: false });
+			roomsDispatch({ type: 'toggleCustomTypePhotoReference', toggle: false });
 		}
 		for (let i = 0; i < temp.length; i++) {
 			if (num == i && num == data.length) {
 				roomsDispatch({ type: 'changeCustom', custom: true });
 				roomsDispatch({ type: 'windowAttributes', windowType: 'Custom' });
-
+				roomsDispatch({ type: 'windowAttributes', img: -1 });
 				temp[num] = true;
 				setCurrent(temp);
 				setAvailableFrameTypes({
 					fiberglass: null,
 					vinyl: null,
 					wood: null,
-					img: customWindowImg,
+					img: null,
 				});
 			} else if (num == i) {
 				let APIitem = data[i].fields;
@@ -638,7 +643,7 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 
-	const [current, setCurrent] = useState([...Array(data.length)]);
+	const [current, setCurrent] = useState([...Array(data.length + 1)]);
 	const [previousIndex, setPreviousIndex] = useState(null);
 
 	useEffect(() => {
@@ -647,6 +652,13 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 
 	function initialize() {
 		const newArray = current.map((element, index) => {
+			if (index == current.length - 1) {
+				if (selectedWindow.customTypePhotoReference) {
+					return true;
+				} else {
+					return false;
+				}
+			}
 			if (!data[index]) return false;
 			let APIitem = data[index].fields || null;
 			if (selectedWindow.type === APIitem.title) {
@@ -663,6 +675,7 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 
 		setCurrent(newArray);
 	}
+	console.log('SPECIAL VALUE: ', selectedWindow.toggleCustomTypePhotoReference);
 	function clear() {
 		const newArray = current.map((element, index) => {
 			return false;
@@ -679,9 +692,28 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 		let price = selectedWindow.price;
 		let index;
 
+		if (selectedWindow.customTypePhotoReference) {
+			roomsDispatch({ type: 'toggleCustomTypePhotoReference', toggle: false });
+		}
+
 		for (let i = 0; i < temp.length; i++) {
-			let APIitem = data[i].fields;
-			if (num == i) {
+			if (num == i && num == data.length) {
+				console.log('FIRED');
+				roomsDispatch({ type: 'changeCustom', custom: true });
+				roomsDispatch({ type: 'windowAttributes', windowType: 'Custom' });
+				roomsDispatch({ type: 'toggleCustomTypePhotoReference', toggle: true });
+
+				temp[num] = true;
+				setCurrent(temp);
+				setAvailableFrameTypes({
+					fiberglass: true,
+					vinyl: true,
+					wood: true,
+					img: customWindowImg,
+				});
+			} else if (num == i) {
+				let APIitem = data[i].fields;
+
 				index = i;
 				temp[index] = true;
 
@@ -708,17 +740,33 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 		setCurrent(temp);
 	}
 
-	const listItems = data.map((item, index) => (
+	const listItems = [
+		...data.map((item, index) => (
+			<div
+				key={index}
+				onClick={() => change(index)}
+				className={` ${
+					current[index] ? 'selected ' : ' hover:drop-shadow-xl cursor-pointer'
+				} transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
+				<img className='h-24' src={item.fields.image.fields.file.url} />
+				<div className='text-textPrimary'>{item.fields.title}</div>
+			</div>
+		)),
+
+		// Custom Item
 		<div
-			key={index}
-			onClick={() => change(index)}
+			key='custom'
+			onClick={() => change(data.length)} // Define the onClick handler for the custom item
 			className={` ${
-				current[index] ? 'selected ' : ' hover:drop-shadow-xl cursor-pointer'
+				current[data.length] ? 'selected ' : ' hover:drop-shadow-xl cursor-pointer'
 			} transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
-			<img className='h-24' src={item.fields.image.fields.file.url} />
-			<div className='text-textPrimary'>{item.fields.title}</div>
-		</div>
-	));
+			{/* Custom item content */}
+			{/* You can customize the content of the custom item based on your requirements */}
+			<PhotoIcon className=' w-48 '></PhotoIcon>
+
+			<div className='text-textPrimary'>Upload Photo</div>
+		</div>,
+	];
 
 	return (
 		<div id='Type' className='my-10'>
@@ -746,12 +794,14 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 				{listItems}
 				<div></div>
 			</motion.div>
-			<div className='flex flex-col'>
-				<div className='mx-auto mt-4 text-textPrimary text-2xl underline'>
-					(Optional) Upload a reference
-				</div>{' '}
-				<FileUploadForm fileCategory={'customTypePhotoReference'}></FileUploadForm>
-			</div>
+			{selectedWindow.customTypePhotoReference && (
+				<motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className='flex flex-col'>
+					<div className='mx-auto mt-4 text-textPrimary text-2xl underline'>
+						(Optional) Upload reference(s)
+					</div>{' '}
+					<FileUploadForm fileCategory={'customTypePhotoReference'}></FileUploadForm>
+				</motion.div>
+			)}
 		</div>
 	);
 }
@@ -930,145 +980,6 @@ function Measurements({ data }) {
 		</div>
 	);
 }
-// function Measurements({ data }) {
-// 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
-// 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
-// 	const [heightPrice, setHeightPrice] = useState(0);
-// 	const [widthPrice, setWidthPrice] = useState(0);
-
-// 	useEffect(() => {
-// 		initialize();
-// 	}, [selectedWindow]);
-
-// 	const initialize = () => {
-// 		document.getElementById('width').value = selectedWindow.width;
-// 		document.getElementById('height').value = selectedWindow.height;
-// 	};
-
-// 	const changeWidthPrice = (dimension) => {
-// 		let sizeIncrement;
-// 		let defaultSize;
-// 		let priceIncrement;
-// 		let price = selectedWindow.price;
-// 		for (let i = 0; i < data.length; i++) {
-// 			let item = data[i].fields;
-// 			console.log(item);
-// 			if (item.dimension == 'Width') {
-// 				sizeIncrement = item.sizeIncrement;
-// 				defaultSize = item.defaultSize;
-// 				priceIncrement = item.priceIncrement;
-// 			}
-// 		}
-// 		price -= widthPrice;
-
-// 		let newIncrement =
-// 			Math.floor((dimension - (defaultSize - sizeIncrement) / 2) / sizeIncrement) * priceIncrement;
-// 		price += newIncrement;
-// 		// roomsDispatch({ type: 'windowAttributes', price: price });
-// 		setWidthPrice(newIncrement - widthPrice);
-// 	};
-// 	const changeHeightPrice = (dimension) => {
-// 		let sizeIncrement;
-// 		let defaultSize;
-// 		let priceIncrement;
-// 		let price = selectedWindow.price;
-// 		for (let i = 0; i < data.length; i++) {
-// 			let item = data[i].fields;
-// 			console.log(item);
-// 			if (item.dimension == 'Height') {
-// 				sizeIncrement = item.sizeIncrement;
-// 				defaultSize = item.defaultSize;
-// 				priceIncrement = item.priceIncrement;
-// 			}
-// 		}
-// 		price -= heightPrice;
-
-// 		let newIncrement =
-// 			Math.floor((dimension - (defaultSize - sizeIncrement) / 2) / sizeIncrement) * priceIncrement;
-// 		price += newIncrement;
-
-// 		// roomsDispatch({ type: 'windowAttributes', price: price });
-// 		setHeightPrice(newIncrement - heightPrice);
-// 	};
-// 	const handleWidthInput = (e) => {
-// 		const inputValue = e.target.value;
-// 		const numericValue = inputValue.replace(/\D/g, ''); // Remove non-numeric characters
-// 		const EMPTY_INPUT = -1;
-
-// 		if (numericValue) {
-// 			changeWidthPrice(numericValue);
-// 		}
-
-// 		roomsDispatch({ type: 'windowAttributes', width: numericValue || EMPTY_INPUT });
-// 	};
-
-// 	const handleHeightInput = (e) => {
-// 		const inputValue = e.target.value;
-// 		const numericValue = inputValue.replace(/\D/g, ''); // Remove non-numeric characters
-// 		const EMPTY_INPUT = -1;
-
-// 		if (numericValue) {
-// 			changeHeightPrice(numericValue);
-// 		}
-
-// 		roomsDispatch({ type: 'windowAttributes', height: numericValue || EMPTY_INPUT });
-// 	};
-// 	return (
-// 		<div className='my-10'>
-// 			<div className=' text-3xl'>Measurement Pattern (Optional)</div>
-// 			<div className='text-textPrimary'>Tell us the measurement of your window if you have it</div>
-// 			<div className='flex flex-row justify-around gap-4 items-center p-2 mt-5'>
-// 				<img className='w-28 md:w-48' src={widthImg}></img>
-// 				<div className=''>
-// 					<div>
-// 						<div className='font-semibold leading-6 '>Measure the Width</div>
-// 						<div className='text-textPrimary'>
-// 							Measure the width of the window at the center. Extend your tape measure horizontally,
-// 							from trim to trim
-// 						</div>
-// 					</div>
-// 					<div className=' mt-2 flex flex-col'>
-// 						<label className='text-textPrimary'>Width (Inches)</label>
-// 						<input
-// 							value={selectedWindow.width}
-// 							onChange={(e) => handleWidthInput(e)}
-// 							type='text'
-// 							name='width'
-// 							id='width'
-// 							className='h-14 w-56 border border-gray-400  px-4 bg-white'
-// 							placeholder='inches'
-// 						/>
-// 					</div>
-// 				</div>
-// 			</div>
-// 			<div className='flex flex-row justify-around gap-4 items-center p-2 mt-5'>
-// 				<img className='w-28 md:w-48' src={heightImg}></img>
-// 				<div className=''>
-// 					<div>
-// 						<div className='font-semibold leading-6 '>Measure the Height</div>
-// 						<div className='text-textPrimary'>
-// 							Measure the height of the window at the center. Extend your tape measure vertically,
-// 							from trim to trim
-// 						</div>
-// 					</div>
-// 					<div className=' mt-2 flex flex-col'>
-// 						<label className='text-textPrimary'>Height (Inches)</label>
-// 						<input
-// 							value={selectedWindow.height}
-// 							onChange={(e) => handleHeightInput(e)}
-// 							type='text'
-// 							name='height'
-// 							id='height'
-// 							className='h-14 w-56 border border-gray-400  px-4 bg-white'
-// 							placeholder='inches'
-// 						/>
-// 					</div>
-// 				</div>
-// 			</div>
-// 			<div className='mt-5 flex justify-evenly'></div>
-// 		</div>
-// 	);
-// }
 
 function FileUploadForm({ fileCategory }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
@@ -1084,7 +995,10 @@ function FileUploadForm({ fileCategory }) {
 
 	const initialize = () => {
 		if (fileCategory == 'customTypePhotoReference') {
-			if (selectedWindow.customTypePhotoReference) {
+			if (
+				selectedWindow.customTypePhotoReference &&
+				selectedWindow.customTypePhotoReference != 'pending'
+			) {
 				setSelectedFiles(selectedWindow.customTypePhotoReference);
 			} else {
 				setSelectedFiles([]);
@@ -1109,7 +1023,7 @@ function FileUploadForm({ fileCategory }) {
 			updatedFiles.splice(index, 1);
 			setSelectedFiles(updatedFiles);
 			if (fileCategory == 'customTypePhotoReference') {
-				roomsDispatch({ type: 'changecustomTypePhotoReference', files: updatedFiles });
+				roomsDispatch({ type: 'changeCustomTypePhotoReference', files: updatedFiles });
 			}
 			if (fileCategory == 'photo') {
 				roomsDispatch({ type: 'changePhoto', files: updatedFiles });
@@ -1129,7 +1043,7 @@ function FileUploadForm({ fileCategory }) {
 		setSelectedFiles((prevSelectedFiles) => {
 			let newList = [...prevSelectedFiles, ...validFiles];
 			if (fileCategory == 'customTypePhotoReference') {
-				roomsDispatch({ type: 'changecustomTypePhotoReference', files: newList });
+				roomsDispatch({ type: 'changeCustomTypePhotoReference', files: newList });
 			}
 			if (fileCategory == 'photo') {
 				roomsDispatch({ type: 'changePhoto', files: newList });

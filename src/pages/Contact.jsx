@@ -11,20 +11,15 @@ import React from 'react';
 import { useRef, useState } from 'react';
 
 function Form({ setIsCompleted }) {
-	const userInput = useRef(null);
-	const firstName = 'Hello, world';
 	const [selectedFile, setSelectedFile] = useState(null);
-
-	const sendData = async (e) => {
-		const data = new FormData(e.target);
+	const [selectedFiles, setSelectedFiles] = useState([]);
+	const sendEmail = async (e) => {
+		//THIS IS NECESSARY CODE FOR PHOTOS TO BE SEEN IN THE EMAIL
 		if (selectedFile) {
 			const selectedFileUrl = await FirebaseFileUpload(selectedFile);
 			data.append('Image', selectedFileUrl);
 		}
 
-		// data.append('TestProp', 'testProp');
-
-		// console.log(data.get('image'));
 		axios.defaults.headers.post['Content-Type'] = 'application/json';
 		axios
 			// Source: https://axios-http.com/docs/multipart
@@ -47,8 +42,14 @@ function Form({ setIsCompleted }) {
 			},
 			body: JSON.stringify(Object.fromEntries(new FormData(e.target))),
 		});
+	};
 
-		uploadContactForm(data);
+	const sendData = async (e) => {
+		const data = new FormData(e.target);
+
+		// sendEmail(e);
+
+		uploadContactForm(data, selectedFiles);
 	};
 
 	const submitForm = (e) => {
@@ -180,13 +181,19 @@ function Form({ setIsCompleted }) {
 											Pictures related to Project
 										</label>
 										<input
-											onChange={(e) => setSelectedFile(e.target.files[0])}
+											onChange={(e) => {
+												console.log(e.target.files[0]);
+												setSelectedFile(e.target.files[0]);
+											}}
 											className='form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0
     focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none'
 											type='file'
 											id='formFile'
 										/>
-										<FileUploadForm fileCategory={'_'}></FileUploadForm>
+										<FileUploadForm
+											fileCategory={'_'}
+											selectedFiles={selectedFiles}
+											setSelectedFiles={setSelectedFiles}></FileUploadForm>
 									</div>
 									<div className='navmd:col-span-5'>
 										<label for='Comment'>Comments</label>
@@ -245,14 +252,6 @@ function Contact() {
 	};
 
 	const [isCompleted, setIsCompleted] = useState(false);
-
-	//   console.log("reloading");
-	function openModal() {
-		console.log('happened');
-	}
-
-	// const [, updateState] = React.useState();
-	//  const forceUpdate = React.useCallback(() => updateState({}), []);
 
 	return (
 		<>
@@ -353,8 +352,8 @@ function Contact() {
 	);
 }
 
-function FileUploadForm({ fileCategory }) {
-	const [selectedFiles, setSelectedFiles] = useState([]);
+function FileUploadForm({ fileCategory, selectedFiles, setSelectedFiles }) {
+	// const [selectedFiles, setSelectedFiles] = useState([]);
 	const [dragging, setDragging] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
 
@@ -367,6 +366,7 @@ function FileUploadForm({ fileCategory }) {
 		if (!uploadedFile) {
 			const updatedFiles = [...selectedFiles];
 			updatedFiles.splice(index, 1);
+			console.log(updatedFiles);
 			setSelectedFiles(updatedFiles);
 			return;
 		}
@@ -389,7 +389,7 @@ function FileUploadForm({ fileCategory }) {
 
 	const handleFileChange = (event) => {
 		console.log(event.target);
-		console.log('handleFileChange', fileCategory);
+
 		const uploadedFile = event.target.files;
 		update(uploadedFile);
 	};
@@ -415,7 +415,6 @@ function FileUploadForm({ fileCategory }) {
 	};
 	const fileInputId = generateUniqueId();
 	console.log('selectedFiles', selectedFiles);
-	// const [fileInputId] = useState('photos' + fileCategory);
 	return (
 		<form>
 			{errorMessage && <p className='mt-4 text-red-500'>{errorMessage}</p>}

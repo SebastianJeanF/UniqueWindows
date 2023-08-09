@@ -85,7 +85,7 @@ const MainFooter4 = () => {
 							<li>
 								<CustomLink
 									className='text-gray-400/80 transition hover:text-gray-500/75'
-									to='/Window-Project/about'>
+									to='/about'>
 									About Us
 								</CustomLink>
 							</li>
@@ -93,7 +93,7 @@ const MainFooter4 = () => {
 							<li>
 								<CustomLink
 									className='text-gray-400/80 transition hover:text-gray-500/75'
-									to='/Window-Project/products'>
+									to='/products'>
 									Our Products
 								</CustomLink>
 							</li>
@@ -101,21 +101,21 @@ const MainFooter4 = () => {
 							<li>
 								<CustomLink
 									className='text-gray-400/80 transition hover:text-gray-500/75'
-									to='/Window-Project/payment'>
+									to='/payment'>
 									Payment
 								</CustomLink>
 							</li>
 							<li>
 								<CustomLink
 									className='text-gray-400/80 transition hover:text-gray-500/75'
-									to='/Window-Project/quote'>
+									to='/quote'>
 									Quote
 								</CustomLink>
 							</li>
 							<li>
 								<CustomLink
 									className='text-gray-400/80 transition hover:text-gray-500/75'
-									to='/Window-Project/contact'>
+									to='/contact'>
 									Contact Us
 								</CustomLink>
 							</li>

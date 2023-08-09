@@ -131,11 +131,13 @@ async function generatePDF(rooms, event) {
 	let yPos = 20;
 	let isFirstWindow = true;
 	let isFirstRoom = true;
+	const pageWidth = pdfDoc.internal.pageSize.getWidth();
+
 	title = 'Quote Description';
 	pdfDoc.setFont('helvetica', 'bold');
 	pdfDoc.setFontSize(20);
 
-	pdfDoc.text(title, getX(title, pdfDoc), yPos);
+	pdfDoc.text(title, getCenterX(title, pdfDoc), yPos);
 	pdfDoc.setFontSize(16);
 	pdfDoc.setFont('helvetica', 'normal');
 	yPos += 15;
@@ -150,7 +152,7 @@ async function generatePDF(rooms, event) {
 		pdfDoc.setFont('helvetica', 'bold');
 		pdfDoc.setFontSize(18);
 
-		pdfDoc.text(title, getX(title, pdfDoc), yPos);
+		pdfDoc.text(title, getCenterX(title, pdfDoc), yPos);
 		pdfDoc.setFontSize(16);
 		pdfDoc.setFont('helvetica', 'normal');
 		yPos += 20;
@@ -163,7 +165,7 @@ async function generatePDF(rooms, event) {
 			const pageHeight = pdfDoc.internal.pageSize.height - 20;
 			let title = `Window ${index + 1}`;
 
-			pdfDoc.text(title, getX(title, pdfDoc), yPos);
+			pdfDoc.text(title, getCenterX(title, pdfDoc), yPos);
 			yPos += 15;
 			for (let [key, value] of Object.entries(window)) {
 				console.log(key, value);
@@ -171,13 +173,19 @@ async function generatePDF(rooms, event) {
 
 				if (key == 'img') continue;
 				if (key == 'customTypePhotoReference' && !value) continue;
+				if (yPos + 10 > pageHeight) {
+					pdfDoc.addPage();
+					yPos = 20; // Reset the vertical position for the new page
+				}
 
-				if (value && (key == 'photo' || key == 'customPhotoReference')) {
-					if (key == 'photo') pdfDoc.text(20, yPos, 'Project Photo References:');
-					else if (key == 'customPhotoReference')
-						pdfDoc.text(20, yPos, 'Custom Window Frame References: ');
+				if (value && (key == 'photo' || key == 'customTypePhotoReference')) {
+					yPos += 5;
+					if (key == 'photo') title = 'Project Photo References:';
+					else title = 'Custom Window Frame References:';
+					pdfDoc.text(getCenterX(title, pdfDoc), yPos, title);
 					yPos += 10;
 					for (let file of value) {
+						console.log('This is the file that might be a blob: ', file);
 						await getFileResolution(file)
 							.then(async (resolution) => {
 								const imageURL = URL.createObjectURL(file);
@@ -188,40 +196,41 @@ async function generatePDF(rooms, event) {
 									pdfDoc.addPage();
 									yPos = 20; // Reset the vertical position for the new page
 								}
-								pdfDoc.addImage(imageURL, 'JPEG', 20, yPos, width, height);
+								pdfDoc.addImage(imageURL, getCenterX(width, pdfDoc), yPos, width, height);
 								yPos += 10 + height;
 								const linkText = 'Project Photo Link';
 								addLinkToPDF(pdfDoc, yPos, linkText, imageLink);
-								yPos += 10 + height;
-								console.log('Resolution:', resolution.width, 'x', resolution.height);
+								yPos += 10;
 							})
 							.catch((error) => {
 								console.error('Error:', error.message);
 							});
 					}
+					yPos += 2;
+					pdfDoc.line(20, yPos, pageWidth - 20, yPos);
+					yPos += 10;
 					continue;
 				}
-				if (yPos + 10 > pageHeight) {
-					pdfDoc.addPage();
-					yPos = 20; // Reset the vertical position for the new page
-				}
+
 				if (key == 'custom') {
 					key = 'Custom Type';
 					value = capitalizeFirstLetter(`${value}`);
 				}
 				if (key == 'height' || key == 'width') {
 					if (!value) value = 'N/A';
-					else value = `${value}in`;
+					else value = `${value} in`;
 				}
 				if (key == 'price') {
 					value = `$${value}`;
+					console.log('This is yPos', yPos, 'This is pageHeight, ', pageHeight);
 				}
 				if (key == 'interior' || key == 'exterior') {
 					key = `${key} Color`;
 				}
 				key = capitalizeFirstLetter(key);
 				// value = capitalizeFirstLetter(value);
-				pdfDoc.text(20, yPos, `${key}: ${value}`);
+				let text = `${key}: ${value}`;
+				pdfDoc.text(getCenterX(text, pdfDoc), yPos, text);
 				yPos += 10;
 			}
 		}
@@ -261,10 +270,10 @@ async function FirebaseForm(pdfDoc) {
 function addLinkToPDF(pdfDoc, yPos, linkText, linkUrl) {
 	let x;
 	if (linkText == 'Project Photo Link') x = 20;
-	else x = getX(linkText, pdfDoc);
+	else x = getCenterX(linkText, pdfDoc);
 	pdfDoc.setTextColor(128, 128, 128);
-	pdfDoc.textWithLink(linkText, x, yPos, { url: linkUrl, underline: true });
-	pdfDoc.setTextColor(255, 255, 255);
+	pdfDoc.textWithLink(linkText, getCenterX(linkText, pdfDoc), yPos, { url: linkUrl });
+	pdfDoc.setTextColor(0, 0, 0);
 }
 
 export async function FirebaseFileUpload(file) {
@@ -382,12 +391,18 @@ export function PDFGenerator() {
 
 const getTextWidth = (text, pdfDoc) =>
 	(pdfDoc.getStringUnitWidth(text) * pdfDoc.internal.getFontSize()) / pdfDoc.internal.scaleFactor;
-const getX = (text, pdfDoc) => {
-	const textWidth = getTextWidth(text, pdfDoc);
+const getCenterX = (text, pdfDoc) => {
+	let textWidth;
+	if (typeof text == 'number') {
+		textWidth = text;
+	} else {
+		textWidth = getTextWidth(text, pdfDoc);
+	}
 	const pageWidth = pdfDoc.internal.pageSize.getWidth();
 	return (pageWidth - textWidth) / 2;
 };
-export async function uploadContactForm(data) {
+
+export async function uploadContactForm(data, files) {
 	let pdfDoc = new jsPDF();
 	let title;
 	let yPos = 20;
@@ -396,50 +411,55 @@ export async function uploadContactForm(data) {
 	pdfDoc.setFont('helvetica', 'bold');
 	pdfDoc.setFontSize(20);
 
-	pdfDoc.text(title, getX(title, pdfDoc), yPos);
+	pdfDoc.text(title, getCenterX(title, pdfDoc), yPos);
 	pdfDoc.setFontSize(16);
 	pdfDoc.setFont('helvetica', 'normal');
 	yPos += 15;
 	// console.log('This is data from contact form', data.getAll());
-
+	const pageHeight = pdfDoc.internal.pageSize.height - 20;
 	data.forEach(async (value, key) => {
 		if (!value) value = 'N/A';
 		if (key == 'Image') {
-			const linkText = 'Photo Link';
-			const linkUrl = value;
-			pdfDoc.text(`${key}:`, getX(`${key}:`, pdfDoc), yPos);
-			yPos += 10;
-			// await getFileResolution(value)
-			// 	.then((resolution) => {
-			// 		const imageURL = URL.createObjectURL(value);
-			// 		const width = 75;
-			// 		const height = resolution.height * (width / resolution.width);
-			// 		if (yPos + height > pageHeight) {
-			// 			pdfDoc.addPage();
-			// 			yPos = 20; // Reset the vertical position for the new page
-			// 		}
-			// 		pdfDoc.addImage(imageURL, 'JPEG', 20, yPos, width, height);
-			// 		yPos += 10 + height;
-			// 		console.log('Resolution:', resolution.width, 'x', resolution.height);
-			// 	})
-			// 	.catch((error) => {
-			// 		console.error('Error:', error.message);
-			// 	});
-			// yPos += 10;
-
-			addLinkToPDF(pdfDoc, yPos, linkText, linkUrl);
 		} else {
 			let entry = `${key}: ${value}`;
-			pdfDoc.text(entry, getX(entry, pdfDoc), yPos);
+			pdfDoc.text(entry, getCenterX(entry, pdfDoc), yPos);
 			yPos += 10; // Ad}just the vertical position for the next line
 		}
 	});
-	let link = await FirebaseForm(pdfDoc);
-	ContentfulUpload(link, 'contactFormSubmisssions');
+
+	for (let file of files) {
+		const linkText = 'Photo Link';
+		const linkUrl = await FirebaseFileUpload(file);
+		yPos += 10;
+		await getFileResolution(file)
+			.then((resolution) => {
+				const imageURL = URL.createObjectURL(file);
+				const width = 75;
+				const height = resolution.height * (width / resolution.width);
+				if (yPos + height > pageHeight) {
+					pdfDoc.addPage();
+					yPos = 20; // Reset the vertical position for the new page
+				}
+
+				pdfDoc.addImage(imageURL, 'JPEG', getCenterX(width, pdfDoc), yPos, width, height);
+				yPos += 10 + height;
+				console.log('Resolution:', resolution.width, 'x', resolution.height);
+			})
+			.catch((error) => {
+				console.error('Error:', error.message);
+			});
+		yPos += 10;
+
+		addLinkToPDF(pdfDoc, yPos, linkText, linkUrl);
+	}
+	pdfDoc.save();
+	// let link = await FirebaseForm(pdfDoc);
+	// ContentfulUpload(link, 'contactFormSubmisssions');
 }
 
 function addFormToPDF(event, pdfDoc) {
 	const fullName = event.target.elements.full_name.value;
+	const number = event.target.elements.phone_number.value;
 	const email = event.target.elements.email.value;
 	const address = event.target.elements.address.value;
 	const city = event.target.elements.city.value;
@@ -472,12 +492,14 @@ function addFormToPDF(event, pdfDoc) {
 	pdfDoc.setFont('helvetica', 'bold');
 	pdfDoc.setFontSize(20);
 
-	pdfDoc.text(title, getX(title, pdfDoc), ypos);
+	pdfDoc.text(title, getCenterX(title, pdfDoc), ypos);
 	pdfDoc.setFontSize(16);
 	pdfDoc.setFont('helvetica', 'normal');
 
 	ypos += 20;
 	pdfDoc.text(`Full Name: ${fullName}`, xpos, ypos);
+	ypos += 10;
+	pdfDoc.text(`Phone Number: ${number}`, xpos, ypos);
 	ypos += 10;
 	pdfDoc.text(`Email: ${email}`, xpos, ypos);
 	ypos += 10;
@@ -495,7 +517,8 @@ function addFormToPDF(event, pdfDoc) {
 export async function completeQuote(event, rooms) {
 	event.preventDefault();
 	let pdfDoc = await generatePDF(rooms, event);
-	let link = await FirebaseForm(pdfDoc);
-	ContentfulUpload(link, 'quotes');
+	pdfDoc.save();
+	// let link = await FirebaseForm(pdfDoc);
+	// ContentfulUpload(link, 'quotes');
 	// Save the PDF
 }

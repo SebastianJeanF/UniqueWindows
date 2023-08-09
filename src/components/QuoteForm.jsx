@@ -194,8 +194,8 @@ export function Form({ setMode }) {
 									onSubmit={(e) => {
 										e.preventDefault();
 										completeQuote(e, rooms);
-										setMode('Complete');
-										setIsQuoteComplete(true);
+										// setMode('Complete');
+										// setIsQuoteComplete(true);
 									}}
 									className='grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5'>
 									<div className='md:col-span-5'>
@@ -210,7 +210,19 @@ export function Form({ setMode }) {
 											required
 										/>
 									</div>
-
+									<div className='md:col-span-5'>
+										<label for='phone_number'>
+											<span className='text-red-500'>* </span>Phone Number
+										</label>
+										<input
+											type='tel'
+											// pattern='[0-9]{3}-[0-9]{3}-[0-9]{4}'
+											name='phone_number'
+											id='phone_number'
+											className='h-10 border mt-1 rounded px-4 w-full bg-gray-50'
+											required
+										/>
+									</div>
 									<div className='md:col-span-5'>
 										<label for='email'>
 											<span className='text-red-500'>* </span>Email Address

@@ -50,19 +50,19 @@ function Context({ children }) {
 
 	function reducer(draft, action) {
 		const NULL_ID = -1;
+		const selectedWindow = getSelectedWindow(draft);
+		const selectedRoom = getSelectedRoom(draft);
+		const EMPTYINPUT = -1;
 
 		switch (action.type) {
 			case 'selectRoom':
 				draft.selectedRoomId = action.id;
 				return;
 			case 'editRoom':
-				const selectedRoom = getSelectedRoom(draft);
 				selectedRoom.name = action.name;
 				console.log('editRoom reducer triggered');
 				return;
 			case 'addWindow': {
-				const selectedRoom = getSelectedRoom(draft);
-
 				if (selectedRoom.selectedWindowId == NULL_ID) {
 					selectedRoom.selectedWindowId = 0;
 					return;
@@ -91,8 +91,6 @@ function Context({ children }) {
 				return;
 			}
 			case 'windowAttributes': {
-				const selectedWindow = getSelectedWindow(draft);
-				const EMPTYINPUT = -1;
 				if (action.frame) {
 					selectedWindow.frame = action.frame;
 				} else if (action.exterior) {
@@ -102,6 +100,10 @@ function Context({ children }) {
 				} else if (action.windowType) {
 					selectedWindow.type = action.windowType;
 				} else if (action.img) {
+					if (action.img == EMPTYINPUT) {
+						selectedWindow.img = null;
+						return;
+					}
 					selectedWindow.img = action.img;
 				} else if (action.photo) {
 					selectedWindow.photo = true;
@@ -130,7 +132,6 @@ function Context({ children }) {
 				return;
 			}
 			case 'shiftWindowLeft': {
-				const selectedRoom = getSelectedRoom(draft);
 				if (selectedRoom.selectedWindowId > 0) {
 					selectedRoom.selectedWindowId--;
 				}
@@ -138,14 +139,12 @@ function Context({ children }) {
 			}
 
 			case 'shiftWindowRight': {
-				const selectedRoom = getSelectedRoom(draft);
 				if (selectedRoom.selectedWindowId < selectedRoom.windows.length - 1) {
 					selectedRoom.selectedWindowId++;
 				}
 				return;
 			}
 			case 'removeWindow': {
-				const selectedRoom = getSelectedRoom(draft);
 				console.log('selectedRoom.selectedWindowId: ', selectedRoom.selectedWindowId);
 				selectedRoom.windows.splice(selectedRoom.selectedWindowId, 1);
 				console.log(JSON.stringify(selectedRoom.windows));
@@ -160,18 +159,15 @@ function Context({ children }) {
 				return;
 			}
 			case 'changeRoomPrice': {
-				const selectedRoom = getSelectedRoom(draft);
 				selectedRoom.price = action.price;
 
 				return;
 			}
 			case 'changeCustom': {
-				const selectedWindow = getSelectedWindow(draft);
 				selectedWindow.custom = action.custom;
 				return;
 			}
-			case 'changeCustomPhotoReference': {
-				const selectedWindow = getSelectedWindow(draft);
+			case 'changeCustomTypePhotoReference': {
 				selectedWindow.customTypePhotoReference = action.files;
 				console.log(
 					'selectedWindow.customTypePhotoReference: ',
@@ -180,8 +176,15 @@ function Context({ children }) {
 				return;
 			}
 			case 'changePhoto': {
-				const selectedWindow = getSelectedWindow(draft);
 				selectedWindow.photo = action.files;
+				return;
+			}
+			case 'toggleCustomTypePhotoReference': {
+				if (action.toggle) {
+					selectedWindow.customTypePhotoReference = 'pending';
+				} else {
+					selectedWindow.customTypePhotoReference = null;
+				}
 				return;
 			}
 			default: {
