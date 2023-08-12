@@ -22,7 +22,7 @@ export default defineConfig({
 				products: resolve(root, 'products', 'index.html'),
 				payment: resolve(root, 'payment', 'index.html'),
 				contact: resolve(root, 'contact', 'index.html'),
-				// quote: resolve(root, 'quote', 'index.html'),
+				quote: resolve(root, 'quote', 'index.html'),
 				terms: resolve(root, 'terms', 'index.html'),
 			},
 		},

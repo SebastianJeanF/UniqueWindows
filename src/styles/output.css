@@ -625,7 +625,7 @@ body::before {
 }
 
 .mast-head2 {
-  background: url("../assets/windows.jpg");
+  background: url("../assets/windows.webp");
   background-size: cover;
 }
 

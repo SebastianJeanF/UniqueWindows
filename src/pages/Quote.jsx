@@ -52,6 +52,7 @@ import {
 	QuoteRoomsContext,
 	QuoteWindowContext,
 	QuoteCompleted,
+	InfoContext,
 } from '../context/Context';
 
 import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
@@ -90,6 +91,13 @@ const styles = {
 	span: {
 		backgroundColor: 'rgba(0, 0, 0, 0.33)',
 	},
+};
+const getInfo = (title, data) => {
+	for (let entry in data) {
+		console.log('ENTRY: ', entry);
+		if (data[entry].fields.title == title) return data[entry].fields;
+	}
+	return { description: '' };
 };
 
 const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
@@ -435,6 +443,7 @@ const WindowView = ({ className, isModal, modeState, room, setCategoryFocus }) =
 function WindowType({ data, setAvailableFrameTypes }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
+	const infoData = useContext(InfoContext).infoData;
 
 	const [current, setCurrent] = useState([...Array(data.length + 1)]);
 	const [previousIndex, setPreviousIndex] = useState(null);
@@ -530,58 +539,32 @@ function WindowType({ data, setAvailableFrameTypes }) {
 		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
 			<div>
 				<div className='relative mx-auto text-center underline text-2xl '>Fixed Windows</div>
-				<div className='mt-2'>
-					Fixed windows are stationary and cannot be opened or closed. They are designed to maximize
-					natural light and provide unobstructed views. Fixed windows are perfect for areas where
-					ventilation is not a priority, such as high or hard-to-reach places.
-				</div>
+				<div className='mt-2'>{getInfo('Fixed Window', infoData).description}</div>
 			</div>
 			<div>
 				<div className='relative mx-auto text-center underline text-2xl '>Single Hung Windows</div>
-				<div className='mt-2'>
-					Single hung windows consist of two sashes, but only the bottom sash is operable. The top
-					sash remains fixed. They are easy to clean and offer a classic, timeless look.
-				</div>
+				<div className='mt-2'>{getInfo('Single Hung Window', infoData).description}</div>
 			</div>
 			<div>
 				<div className='relative mx-auto text-center underline text-2xl '>Double Hung Windows</div>
-				<div className='mt-2'>
-					Double hung windows have two operable sashes, allowing for both top and bottom
-					ventilation. This versatility makes them a popular choice for many homeowners. They also
-					offer easy cleaning with sashes that tilt inwards.
-				</div>
+				<div className='mt-2'>{getInfo('Double Hung Window', infoData).description}</div>
 			</div>
 			<div>
 				<div className='relative mx-auto text-center underline text-2xl '>Awning Windows</div>
-				<div className='mt-2'>
-					Awning windows are hinged at the top and open outward, resembling an awning. They provide
-					excellent ventilation even during light rain, as the outward opening prevents water from
-					entering. Awning windows are commonly used in bathrooms and basements.
-				</div>
+				<div className='mt-2'>{getInfo('Awning Window', infoData).description}</div>
+				<div className='mt-2'></div>
 			</div>
 			<div>
 				<div className='relative mx-auto text-center underline text-2xl '>Corner Windows</div>
-				<div className='mt-2'>
-					Corner windows are specially designed to wrap around the corner of a building, providing
-					panoramic views and allowing maximum natural light to enter. They create a unique
-					architectural statement and are popular in modern and contemporary designs.
-				</div>
+				<div className='mt-2'>{getInfo('Corner Window', infoData).description}</div>
 			</div>
 			<div>
 				<div className='relative mx-auto text-center underline text-2xl '>Bay Windows</div>
-				<div className='mt-2'>
-					Bay windows are a combination of three or more windows that extend outward from the wall,
-					creating a small alcove or bay. They add architectural interest, increase interior space,
-					and allow abundant natural light to flood the room.
-				</div>
+				<div className='mt-2'>{getInfo('Bay Window', infoData).description}</div>
 			</div>
 			<div>
 				<div className='relative mx-auto text-center underline text-2xl '>Casement Windows</div>
-				<div className='mt-2'>
-					Casement windows are hinged on the side and open outward like a door. They provide
-					excellent ventilation and unobstructed views. Casement windows are known for their energy
-					efficiency and easy operation.
-				</div>
+				<div className='mt-2'>{getInfo('Casement Window', infoData).description}</div>
 			</div>
 		</div>
 	);
@@ -777,9 +760,6 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 						Choose what type of window you want for this project
 					</div>
 				</div>
-				<InformationCircleIcon
-					// onClick={() => setModalState(true)}
-					className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
 				<button
 					onClick={() => clear()}
 					type='button'
@@ -1197,7 +1177,7 @@ const ProjectPhoto = () => {
 function FrameType({ availableFrameTypes, data }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
-
+	const infoData = useContext(InfoContext).infoData;
 	const [current, setCurrent] = useState([...Array(data.length)]);
 	const [previousIndex, setPreviousIndex] = useState(null);
 
@@ -1213,6 +1193,17 @@ function FrameType({ availableFrameTypes, data }) {
 	const body = (
 		<div id='Frame' className='mt-4 text-textPrimary flex flex-col gap-4'>
 			<div>
+				<div style={{ ...styles.all, ...styles.vinyl }} className='relative mx-auto '>
+					<span
+						style={{ ...styles.span }}
+						className='text-2xl p-1 absolute left-5 top-2 text-white underline decoration-white'>
+						Vinyl
+					</span>
+				</div>
+
+				<div className='mt-2'>{getInfo('Vinyl', infoData).description}</div>
+			</div>
+			<div>
 				<div style={{ ...styles.all, ...styles.wood }} className='relative mx-auto '>
 					<span
 						style={{ ...styles.span }}
@@ -1221,12 +1212,7 @@ function FrameType({ availableFrameTypes, data }) {
 					</span>
 				</div>
 
-				<div className='mt-2'>
-					Wood windows offer a timeless aesthetic appeal and can enhance the overall charm of a
-					space. They provide excellent insulation, reducing energy loss and enhancing energy
-					efficiency. However, wood requires regular maintenance to prevent rotting, warping, or
-					insect damage, and it can be relatively expensive compared to other materials
-				</div>
+				<div className='mt-2'>{getInfo('Wood', infoData).description}</div>
 			</div>
 			<div>
 				<div style={{ ...styles.all, ...styles.fiberglass }} className='relative mx-auto '>
@@ -1237,29 +1223,7 @@ function FrameType({ availableFrameTypes, data }) {
 					</span>
 				</div>
 
-				<div className='mt-2'>
-					Fiberglass windows offer exceptional durability and strength. They are resistant to
-					warping, rotting, and insect damage, requiring minimal maintenance. Fiberglass also
-					provides excellent insulation and can withstand extreme weather conditions. However,
-					fiberglass windows tend to be more expensive than vinyl options, and customization choices
-					may be limited
-				</div>
-			</div>
-			<div>
-				<div style={{ ...styles.all, ...styles.vinyl }} className='relative mx-auto '>
-					<span
-						style={{ ...styles.span }}
-						className='text-2xl p-1 absolute left-5 top-2 text-white underline decoration-white'>
-						Vinyl
-					</span>
-				</div>
-
-				<div className='mt-2'>
-					Vinyl windows are cost-effective and low-maintenance. They offer good insulation and are
-					resistant to rot, warping, and insect damage. However, they may not provide the same level
-					of elegance as wood or fiberglass windows. Over time, extreme temperatures can cause vinyl
-					to expand and contract, potentially affecting the window's performance
-				</div>
+				<div className='mt-2'>{getInfo('Fiberglass', infoData).description}</div>
 			</div>
 		</div>
 	);
@@ -1408,6 +1372,7 @@ function ExteriorColorType({ data, selectedFrame }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	const [modalState, setModalState] = useState(false);
+	const infoData = useContext(InfoContext).infoData;
 
 	const [current, setCurrent] = useState([...Array(data.length)]);
 	useEffect(() => {
@@ -1452,21 +1417,11 @@ function ExteriorColorType({ data, selectedFrame }) {
 		roomsDispatch({ type: 'windowAttributes', exterior: 'Plain' });
 	}
 
-	const title = <div className='text-textPrimary font-bold text-2xl'>PVC Trim</div>;
+	const title = <div className='text-textPrimary font-bold text-2xl'>Exterior Paint</div>;
 	const body = (
 		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
 			<div>
-				<img src={imgPVC}></img>
-				<div className='mt-2'>
-					Introducing our PVC Trim, specially formulated to enhance and protect your windows. Our
-					PVC Trim is designed to adhere to the surface of window frames, providing a durable and
-					long-lasting finish. With a wide range of colors to choose from, you can customize the
-					look of your windows to match your style and complement your home's exterior. Our
-					high-quality paint offers excellent resistance to UV rays, fading, cracking, and peeling,
-					ensuring that your windows maintain their vibrant appearance for years to come. Trust our
-					PVC Trim to give your windows a fresh and appealing makeover while protecting them from
-					the elements.
-				</div>
+				<div className='mt-2'>{getInfo('Exterior Paint', infoData).description}</div>
 			</div>
 		</div>
 	);
@@ -1535,7 +1490,7 @@ function TrimCategory({ data, selectedFrame }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	const [modalState, setModalState] = useState(false);
-
+	const infoData = useContext(InfoContext).infoData;
 	const [current, setCurrent] = useState([...Array(data.length)]);
 	const [toggleTrim, setToggleTrim] = useState(null);
 	useEffect(() => {
@@ -1605,16 +1560,7 @@ function TrimCategory({ data, selectedFrame }) {
 		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
 			<div>
 				<img className='mx-auto p-10' src={imgPVC}></img>
-				<div className='mt-2'>
-					Introducing our PVC Trim, specially formulated to enhance and protect your windows. Our
-					PVC Trim is designed to adhere to the surface of window frames, providing a durable and
-					long-lasting finish. With a wide range of colors to choose from, you can customize the
-					look of your windows to match your style and complement your home's exterior. Our
-					high-quality paint offers excellent resistance to UV rays, fading, cracking, and peeling,
-					ensuring that your windows maintain their vibrant appearance for years to come. Trust our
-					PVC Trim to give your windows a fresh and appealing makeover while protecting them from
-					the elements.
-				</div>
+				<div className='mt-2'>{getInfo('PVC Trim', infoData).description}</div>
 			</div>
 		</div>
 	);
@@ -1721,6 +1667,7 @@ function TrimCategory({ data, selectedFrame }) {
 function InteriorColorType({ data, selectedFrame }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
+	const infoData = useContext(InfoContext).infoData;
 
 	const [current, setCurrent] = useState([...Array(data.length)]);
 	const [previousIndex, setPreviousIndex] = useState(null);
@@ -1765,20 +1712,12 @@ function InteriorColorType({ data, selectedFrame }) {
 		roomsDispatch({ type: 'windowAttributes', interior: data[num].fields.title });
 		setCurrent(temp);
 	}
-	const title = <div className='text-textPrimary font-bold text-2xl'>Interior PVC Paint</div>;
+	const title = <div className='text-textPrimary font-bold text-2xl'>Interior Paint</div>;
 	const body = (
 		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
 			<div>
 				<img></img>
-				<div className='mt-2'>
-					Introducing our interior paint, specially formulated to transform the look of your window
-					frames from the inside. Our interior paint offers a wide range of color options to match
-					your interior decor and style. With its superior adhesion and durability, our paint
-					provides a smooth and long-lasting finish on PVC surfaces. Whether you want to refresh the
-					appearance of your windows or create a whole new aesthetic, our PVC Interior Paint is the
-					perfect choice. Trust us to enhance the beauty of your windows with our high-quality
-					interior paint.
-				</div>
+				<div className='mt-2'>{getInfo('Interior Paint', infoData).description}</div>
 			</div>
 		</div>
 	);
@@ -2382,10 +2321,12 @@ export default function Quote() {
 		'quoteWindowCustom',
 		'quoteTrimColor',
 		'quoteMeasurement',
+		'infoButton',
 	];
 
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const isQuoteComplete = useContext(QuoteCompleted).isQuoteComplete;
+	const setInfoData = useContext(InfoContext).setInfoData;
 	const selectedFrame = selectedWindow ? selectedWindow.frame : null;
 
 	let initialMode = isQuoteComplete ? 'Complete' : 'Customize';
@@ -2402,6 +2343,7 @@ export default function Quote() {
 			}
 
 			setData(temp);
+			setInfoData(temp[7]);
 		} catch (error) {
 			console.log(error);
 		}
@@ -2554,7 +2496,7 @@ export default function Quote() {
 							) : (
 								<div className='border p-2 flex flex-col justify-center border-gray-500 bg-yellow-100'>
 									<div className='font-bold text-textPrimary text-center  text-2xl '>
-										Select Window and Glass Types to see all other options
+										Select Window and Frame Types to reveal all other options
 									</div>
 								</div>
 							)}
