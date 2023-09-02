@@ -4,7 +4,7 @@ import img2 from '../assets/custom/IMG_3904.jpg';
 import img1 from '../assets/custom/IMG_4891.jpg';
 import img3 from '../assets/custom/IMG_9800.jpg';
 
-import Masthead from '../components/NewMasthead';
+import Masthead from '../components/NewMasthead.jsx';
 import { HiOutlineReceiptTax } from 'react-icons/hi';
 import { FaHandshake } from 'react-icons/fa';
 import { motion } from 'framer-motion';

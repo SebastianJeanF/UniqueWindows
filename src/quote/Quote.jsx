@@ -24,7 +24,7 @@ import customWindowImg from '../assets/quote/questionMark.png';
 import widthImg from '../assets/quote/measure-width-windows.png';
 import heightImg from '../assets/quote/measure-height-windows.png';
 import imgPVC from '../assets/quote/PVC-Trim.png';
-import Masthead from '../components/NewMasthead';
+import Masthead from '../components/NewMasthead.jsx';
 
 import { Dialog, Disclosure, Transition, Menu, Listbox } from '@headlessui/react';
 import {
@@ -53,7 +53,7 @@ import {
 	QuoteWindowContext,
 	QuoteCompleted,
 	InfoContext,
-} from '../context/Context';
+} from '../context/Context.jsx';
 
 import { Swiper, SwiperSlide, useSwiper } from 'swiper/react';
 import { Autoplay, Navigation, Pagination, EffectFade } from 'swiper';
@@ -68,34 +68,11 @@ import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import { scaleBetween } from 'parallax-controller';
 // import { isHtmlElement } from 'react-router-dom/dist/dom.js';
 
-const styles = {
-	all: {
-		backgroundPosition: '50% 50%',
-		backgroundRepeat: 'no-repeat',
-		backgroundSize: '150px 150px',
-		height: '150px',
-		width: '150px',
-	},
-	wood: {
-		backgroundImage:
-			"url('https://images.contentstack.io/v3/assets/blt96c8be062696040f/bltbbe42f7ebf3f1c53/5f9c65862425cd7a8af6a0f9/wood-materials.jpg')",
-	},
-	fiberglass: {
-		backgroundImage:
-			"url('https://images.contentstack.io/v3/assets/blt96c8be062696040f/bltc6983a9478b95673/5f9c65be545bdb56ce4920d3/fiberglass-materials.jpg')",
-	},
-	vinyl: {
-		backgroundImage:
-			"url('https://images.contentstack.io/v3/assets/blt96c8be062696040f/blt10871553a2eaeeb9/6081d6bd75873e466bcc6242/product-material-vinyl.jpg')",
-	},
-	span: {
-		backgroundColor: 'rgba(0, 0, 0, 0.33)',
-	},
-};
+
 const getInfo = (title, data) => {
 	for (let entry in data) {
 		console.log('ENTRY: ', entry);
-		if (data[entry].fields.title == title) return data[entry].fields;
+		if (data[entry].fields.title === title) return data[entry].fields;
 	}
 	return { description: '' };
 };

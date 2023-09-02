@@ -1,6 +1,6 @@
 import Navigation from '../components/Nav';
 import Footer from '../components/Footer';
-import Payment from '../pages/Payment';
+import Payment from './Payment.jsx';
 import { ParallaxProvider } from 'react-scroll-parallax';
 
 function App() {

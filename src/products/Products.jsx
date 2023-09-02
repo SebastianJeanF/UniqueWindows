@@ -1,4 +1,4 @@
-import Masthead from '../components/NewMasthead';
+import Masthead from '../components/NewMasthead.jsx';
 import img3 from '../assets/house.jpg';
 import img2 from '../assets/ProductMasthead.jpg';
 import img1 from '../assets/bratislava.jpg';

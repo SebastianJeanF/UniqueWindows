@@ -1,6 +1,6 @@
 import Navigation from '../components/Nav';
 import Footer from '../components/Footer';
-import Products from '../pages/Products';
+import Products from './Products.jsx';
 import { ParallaxProvider } from 'react-scroll-parallax';
 
 function App() {

@@ -16,8 +16,6 @@ export default defineConfig({
 		rollupOptions: {
 			input: {
 				main: resolve(root, 'index.html'),
-				// about: resolve(root, 'index.html'),
-
 				about: resolve(root, 'about', 'index.html'),
 				products: resolve(root, 'products', 'index.html'),
 				payment: resolve(root, 'payment', 'index.html'),

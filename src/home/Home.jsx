@@ -1,6 +1,6 @@
 import img2 from '../assets/custom/IMG_7335.jpg';
 import img3 from '../assets/contactUs.jpg';
-import Carousel from '../components/SwiperCarousel';
+import Carousel from '../components/SwiperCarousel.jsx';
 import { GrContactInfo } from 'react-icons/gr';
 import { TbWindow } from 'react-icons/tb';
 import { motion } from 'framer-motion';

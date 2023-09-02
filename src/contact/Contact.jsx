@@ -1,5 +1,5 @@
-import openModal from '../modals/Modal';
-import Masthead from '../components/NewMasthead';
+import openModal from '../modals/Modal.jsx';
+import Masthead from '../components/NewMasthead.jsx';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import img1 from '../assets/custom/IMG_5162.jpg';

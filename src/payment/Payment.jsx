@@ -1,4 +1,4 @@
-import Masthead from '../components/NewMasthead';
+import Masthead from '../components/NewMasthead.jsx';
 import img3 from '../assets/Payment.jpg';
 import img2 from '../assets/PaymentMasthead.jpg';
 import { GrContactInfo } from 'react-icons/gr';

@@ -1,7 +1,7 @@
 import Navigation from '../components/Nav';
 import Footer from '../components/Footer';
 // import Terms from '../pages/Terms';
-import Home from '../pages/Home';
+import Home from '../home/Home.jsx';
 
 import { ParallaxProvider } from 'react-scroll-parallax';
 

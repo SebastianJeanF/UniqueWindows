@@ -165,7 +165,7 @@ const MainFooter4 = () => {
 			</motion.div>
 			<div className='w-full py-2 flex flex-col  bg-black text-center text-xsm text-gray-300'>
 				<span>Copyright &copy; 2022, All Rights Reserved</span>
-				<a className='text-primary transition  hover:text-white' href='/terms'>
+				<a className='text-primary transition  hover:text-white' href='/src/terms/Terms'>
 					Terms and Conditions
 				</a>
 			</div>
