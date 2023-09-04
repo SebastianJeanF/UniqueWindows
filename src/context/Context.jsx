@@ -18,8 +18,10 @@ function Context({ children }) {
 		custom: false,
 		frame: null,
 		interior: null,
-		exterior: 'Plain',
+		exterior: null,
 		trim: null,
+		grille: null,
+		screen: null,
 		width: null,
 		height: null,
 		photo: null,
@@ -128,8 +130,11 @@ function Context({ children }) {
 					selectedWindow.price = action.price;
 				} else if (action.trim) {
 					selectedWindow.trim = action.trim;
+				} else if (action.grille) {
+					selectedWindow.grille = action.grille;
+				} else if (action.screen) {
+					selectedWindow.screen = action.screen;
 				} else console.log('ERROR in windowAttributes reducer');
-
 				return;
 			}
 			case 'shiftWindowLeft': {
@@ -207,7 +212,7 @@ function Context({ children }) {
 	const reinitialized = useRef(false);
 	const [isQuoteComplete, setIsQuoteComplete] = useState(false);
 
-	// INFO CONTEXT //
+	/**  INFO CONTEXT */
 	const [infoData, setInfoData] = useState();
 	return (
 		<InfoContext.Provider value={{ infoData, setInfoData }}>

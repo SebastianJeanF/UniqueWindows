@@ -1,5 +1,4 @@
 import {
-	MutableRefObject,
 	useEffect,
 	useContext,
 	useRef,
@@ -15,16 +14,16 @@ import { createClient as createAuthClient } from 'contentful-management';
 
 import { Form } from '../components/QuoteForm.jsx';
 import { PDFGenerator } from '../components/UploadQuote.jsx';
-import img1 from '../assets/custom/IMG_5162.jpg';
-import { storage } from '../components/Firebase.js';
-import { ref, uploadBytes, getDownloadURL, connectStorageEmulator } from 'firebase/storage';
 import { GiWindow } from 'react-icons/gi';
+
 // IMAGES
 import customWindowImg from '../assets/quote/questionMark.png';
 import widthImg from '../assets/quote/measure-width-windows.png';
 import heightImg from '../assets/quote/measure-height-windows.png';
 import imgPVC from '../assets/quote/PVC-Trim.png';
-import Masthead from '../components/NewMasthead.jsx';
+import windowWithGrilleImg from '../assets/quote/katja-nemec-vP12kAP2yeg-unsplash.jpg';
+import windowWithoutGrilleImg from '../assets/quote/windowWithoutGrille.jpg';
+import windowScreenImg from '../assets/quote/windowScreen.jpg';
 
 import { Dialog, Disclosure, Transition, Menu, Listbox } from '@headlessui/react';
 import {
@@ -67,11 +66,32 @@ import 'swiper/css/pagination';
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import { scaleBetween } from 'parallax-controller';
 // import { isHtmlElement } from 'react-router-dom/dist/dom.js';
-
-
+const styles = {
+	all: {
+		backgroundPosition: '50% 50%',
+		backgroundRepeat: 'no-repeat',
+		backgroundSize: '150px 150px',
+		height: '150px',
+		width: '150px',
+	},
+	wood: {
+		backgroundImage:
+			"url('https://images.contentstack.io/v3/assets/blt96c8be062696040f/bltbbe42f7ebf3f1c53/5f9c65862425cd7a8af6a0f9/wood-materials.jpg')",
+	},
+	fiberglass: {
+		backgroundImage:
+			"url('https://images.contentstack.io/v3/assets/blt96c8be062696040f/bltc6983a9478b95673/5f9c65be545bdb56ce4920d3/fiberglass-materials.jpg')",
+	},
+	vinyl: {
+		backgroundImage:
+			"url('https://images.contentstack.io/v3/assets/blt96c8be062696040f/blt10871553a2eaeeb9/6081d6bd75873e466bcc6242/product-material-vinyl.jpg')",
+	},
+	span: {
+		backgroundColor: 'rgba(0, 0, 0, 0.33)',
+	},
+};
 const getInfo = (title, data) => {
 	for (let entry in data) {
-		console.log('ENTRY: ', entry);
 		if (data[entry].fields.title === title) return data[entry].fields;
 	}
 	return { description: '' };
@@ -264,13 +284,38 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 													setCategoryFocus('Exterior');
 													changeMode();
 												}}
-												className={` ${
-													window.trim
-														? 'bg-green-100 hover:bg-green-200'
-														: 'bg-red-100 hover:bg-red-200'
-												} font-semibold text-textPrimary  text-center cursor-pointer duration-300`}>
-												<td className='border-gray-500 border-r py-1 px-6'>Trim Color</td>
-												<td className='py-1 px-6 font-medium'>{window.trim || message}</td>
+												className={`bg-green-100 hover:bg-green-200 
+                        font-semibold text-textPrimary  text-center cursor-pointer duration-300`}>
+												<td className='border-gray-500 border-r py-1 px-6'>Trim Option</td>
+												<td className='py-1 px-6 font-medium'>
+													{window.trim ? window.trim : 'Not Included'}
+												</td>
+											</tr>
+											<tr
+												onClick={() => {
+													setCategoryFocus('Exterior');
+													changeMode();
+												}}
+												className={
+													'bg-green-100 hover:bg-green-200 font-semibold text-textPrimary  text-center cursor-pointer duration-300'
+												}>
+												<td className='border-gray-500 border-r py-1 px-6'>Grille Option</td>
+												<td className='py-1 px-6 font-medium'>
+													{' '}
+													{window.grille ? window.grille : 'Not Included'}
+												</td>
+											</tr>
+											<tr
+												onClick={() => {
+													setCategoryFocus('Exterior');
+													changeMode();
+												}}
+												className={`  bg-green-100 hover:bg-green-200
+												 font-semibold text-textPrimary  text-center cursor-pointer duration-300`}>
+												<td className='border-gray-500 border-r py-1 px-6'>Screen Option</td>
+												<td className='py-1 px-6 font-medium'>
+													{window.screen == true ? 'Included' : 'Not Included'}
+												</td>
 											</tr>
 											<tr
 												onClick={() => {
@@ -635,7 +680,6 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 
 		setCurrent(newArray);
 	}
-	console.log('SPECIAL VALUE: ', selectedWindow.toggleCustomTypePhotoReference);
 	function clear() {
 		const newArray = current.map((element, index) => {
 			return false;
@@ -1483,7 +1527,7 @@ function TrimCategory({ data, selectedFrame }) {
 			return false;
 		});
 
-		if (selectedWindow.trim == 'None') {
+		if (selectedWindow.trim == 'Not Included') {
 			setToggleTrim(false);
 		} else if (selectedWindow.trim) {
 			setToggleTrim(true);
@@ -1519,7 +1563,7 @@ function TrimCategory({ data, selectedFrame }) {
 		}
 		setToggleTrim(toggle);
 		if (!toggle) {
-			roomsDispatch({ type: 'windowAttributes', trim: 'None' });
+			roomsDispatch({ type: 'windowAttributes', trim: 'Not Included' });
 			roomsDispatch({ type: 'windowAttributes', price: price });
 			clear();
 		}
@@ -1641,6 +1685,270 @@ function TrimCategory({ data, selectedFrame }) {
 		</>
 	);
 }
+
+function GrilleCategory({ data, selectedFrame }) {
+	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
+	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
+	const [modalState, setModalState] = useState(false);
+	const infoData = useContext(InfoContext).infoData;
+	const [current, setCurrent] = useState([...Array(data.length)]);
+	const [toggleGrille, setToggleGrille] = useState(null);
+	useEffect(() => {
+		initialize();
+	}, [selectedWindow]);
+
+	function initialize() {
+		const newArray = current.map((element, index) => {
+			let APIitem = data[index].fields;
+			if (selectedWindow.grille == APIitem.title) {
+				return true;
+			}
+			return false;
+		});
+
+		if (selectedWindow.grille == 'Not Included') {
+			setToggleGrille(false);
+		} else if (selectedWindow.grille) {
+			setToggleGrille(true);
+		}
+		setCurrent(newArray);
+	}
+
+	function change(num) {
+		if (current[num]) {
+			return;
+		}
+		let temp = [...current];
+		let price = selectedWindow.price;
+		for (let i = 0; i < temp.length; i++) {
+			if (num == i) {
+				temp[i] = true;
+			} else if (temp[i] == true) {
+				temp[i] = undefined;
+			}
+		}
+		price += data[num].fields.price;
+		roomsDispatch({ type: 'windowAttributes', price: price });
+		roomsDispatch({ type: 'windowAttributes', grille: data[num].fields.title });
+		setCurrent(temp);
+	}
+
+	function toggle(toggle) {
+		let price = selectedWindow.price;
+		for (let i = 0; i < current.length; i++) {
+			if (current[i]) {
+				price -= data[i].fields.price;
+			}
+		}
+		setToggleGrille(toggle);
+		if (!toggle) {
+			roomsDispatch({ type: 'windowAttributes', grille: 'Not Included' });
+			roomsDispatch({ type: 'windowAttributes', price: price });
+			clear();
+		}
+	}
+	function clear() {
+		const newArray = current.map((element, index) => {
+			return false;
+		});
+
+		setCurrent(newArray);
+	}
+
+	const title = <div className='text-textPrimary font-bold text-2xl'>Grille</div>;
+	const body = (
+		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
+			<div className='flex flex-row gap-6 justify-center'>
+				<div>
+					<div className='font-bold text-center'>Without Grille</div>
+					<img className='mx-auto h-60' src={windowWithoutGrilleImg}></img>
+				</div>
+				<div>
+					<div className='font-bold text-center'>With Grille</div>
+					<img className='mx-auto h-60' src={windowWithGrilleImg}></img>
+				</div>
+			</div>
+			<div className='mt-2'>{getInfo('Grille', infoData).description}</div>
+		</div>
+	);
+	const listItems = data.map((item, index) => (
+		<motion.div
+			initial={{ opacity: 0 }}
+			whileInView={{ opacity: 1 }}
+			key={index}
+			onClick={() => change(index)}
+			className={` ${
+				current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
+			}  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 bg-white`}>
+			<img className='h-24' src={item.fields.image.fields.file.url} />
+			<div className='text-textPrimary text-center leading-tight'>{item.fields.title}</div>
+		</motion.div>
+	));
+
+	return (
+		<>
+			<motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}>
+				<ItemsModal openState={[modalState, setModalState]} title={title} body={body}></ItemsModal>
+
+				<div className='my-10'>
+					<div className='flex flex-row'>
+						<div>
+							<div className=' text-3xl'>Grille Option</div>
+							<div className='text-textPrimary'>
+								Would you like to have a grille with your window?
+							</div>
+						</div>
+						<InformationCircleIcon
+							onClick={() => setModalState(true)}
+							className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
+						<button
+							onClick={() => clear()}
+							type='button'
+							className='hidden bg-white hover:bg-gray-100 ml-4 border-slate-500 border-2 h-10 p-2 rounded '>
+							Deselect
+						</button>
+					</div>
+
+					<div className='mt-5 grid grid-cols-2 gap-4'>
+						<div
+							key={0}
+							onClick={() => toggle(false)}
+							className={` ${
+								toggleGrille == false ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
+							}  transition border-solid font-medium  border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 p-2 bg-white`}>
+							<div className=' text-3xl text-textPrimary'>No Grille</div>
+						</div>
+						<div
+							key={1}
+							onClick={() => toggle(true)}
+							className={` ${
+								toggleGrille ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
+							}  transition border-solid font-medium  border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 p-2 bg-white`}>
+							<div className=' text-3xl text-textPrimary'>Yes Grille</div>
+						</div>
+					</div>
+				</div>
+			</motion.div>
+			{toggleGrille && (
+				<motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}>
+					<ItemsModal
+						openState={[modalState, setModalState]}
+						title={title}
+						body={body}></ItemsModal>
+
+					<div className='my-10'>
+						<div className='flex flex-row'>
+							<div>
+								<div className=' text-3xl'>Grille Color</div>
+								<div className='text-textPrimary'>
+									Choose what type of grille color you want for this window
+								</div>
+							</div>
+							{/* <InformationCircleIcon
+								onClick={() => setModalState(true)}
+								className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon> */}
+						</div>
+
+						<div className='mt-4 grid grid-cols-2 place-items-center md:flex md:flex-wrap gap-3 md:gap-5 '>
+							{listItems}
+						</div>
+					</div>
+				</motion.div>
+			)}
+		</>
+	);
+}
+function ScreenCategory({ data }) {
+	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
+	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
+	const [modalState, setModalState] = useState(false);
+	const infoData = useContext(InfoContext).infoData;
+	const [current, setCurrent] = useState([...Array(2)]);
+
+	useEffect(() => {
+		initialize();
+	}, [selectedWindow]);
+
+	function initialize() {
+		if (current[0] == undefined) return;
+		console.log(current);
+		const temp = [false, false];
+		if (selectedWindow.screen == true) temp[1] = true;
+		else temp[0] = true;
+		setCurrent(temp);
+	}
+
+	function change(num) {
+		if (current[num]) {
+			return;
+		}
+		let temp = [false, false];
+		let price = selectedWindow.price;
+
+		if (num == 0) {
+			price -= data[0].fields.price;
+			roomsDispatch({ type: 'windowAttributes', screen: 'Not Included' });
+		} else {
+			price += data[0].fields.price;
+			roomsDispatch({ type: 'windowAttributes', screen: true });
+		}
+		temp[num] = true;
+		roomsDispatch({ type: 'windowAttributes', price: price });
+		setCurrent(temp);
+	}
+
+	const title = <div className='text-textPrimary font-bold text-2xl'>Window Screen</div>;
+	const body = (
+		<div className='mt-4 text-textPrimary flex flex-col gap-5'>
+			<div>
+				<img className='mx-auto p-4' src={windowScreenImg}></img>
+				<div className=''>{getInfo('Screen', infoData).description}</div>
+			</div>
+		</div>
+	);
+
+	return (
+		<>
+			<motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}>
+				<ItemsModal openState={[modalState, setModalState]} title={title} body={body}></ItemsModal>
+
+				<div className='my-10'>
+					<div className='flex flex-row'>
+						<div>
+							<div className=' text-3xl'>Screen Option</div>
+							<div className='text-textPrimary'>
+								Would you like to have a screen with your window?
+							</div>
+						</div>
+						<InformationCircleIcon
+							onClick={() => setModalState(true)}
+							className='cursor-pointer text-textPrimary2  h-10'></InformationCircleIcon>
+					</div>
+
+					<div className='mt-5 grid grid-cols-2 gap-4'>
+						<div
+							key={0}
+							onClick={() => change(0)}
+							className={` ${
+								current[0] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
+							}  transition border-solid font-medium  border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 p-2 bg-white`}>
+							<div className=' text-3xl text-textPrimary'>No Screen</div>
+						</div>
+						<div
+							key={1}
+							onClick={() => change(1)}
+							className={` ${
+								current[1] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
+							}  transition border-solid font-medium  border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 p-2 bg-white`}>
+							<div className=' text-3xl text-textPrimary'>Yes Screen</div>
+						</div>
+					</div>
+				</div>
+			</motion.div>
+		</>
+	);
+}
+
 function InteriorColorType({ data, selectedFrame }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
@@ -1942,6 +2250,10 @@ function MyModal({ openState, mode, currentState }) {
 	);
 }
 
+/** Component for right side of the control panel UI involving
+ * the editing, creation, and deletion of rooms, showing quote price,
+ * and controlling whether you have access to quote form */
+
 const ManagementSection = ({ quoteModeState }) => {
 	const rooms = useContext(QuoteRoomsContext).rooms;
 	const selectedRoom = useContext(QuoteRoomsContext).selectedRoom;
@@ -2143,13 +2455,13 @@ const ManagementSection = ({ quoteModeState }) => {
 	));
 
 	return (
-		<div className='    h-full'>
+		<div className='h-full'>
 			<MyModal
 				openState={[isOpen, setIsModalOpen]}
 				currentState={[current, setCurrent]}
 				mode={mode}></MyModal>
 			{initialized && (
-				<div className=' flex flex-col justify-between '>
+				<div className=' flex flex-col justify-between'>
 					<div className='text-3xl font-semibold text-gray-800 mx-auto mt-8 '>Project Rooms</div>
 
 					<div className='mt-10 flex flex-wrap flex-row justify-center items-center bg-gray-100 '>
@@ -2157,7 +2469,7 @@ const ManagementSection = ({ quoteModeState }) => {
 						<button
 							type='button'
 							onClick={() => openModal('Create')}
-							className='hover:drop-shadow-lg hover:bg-green-100  bg-green-50 m-4  rounded-2xl border-solid border-2  border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2'>
+							className='hover:drop-shadow-lg hover:bg-green-100 bg-green-50 m-4  rounded-2xl border-solid border-2  border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2'>
 							<div className=' text-textPrimary text-center text-xl font-semibold  '>Add Room</div>
 							<PlusIcon></PlusIcon>
 						</button>
@@ -2185,6 +2497,10 @@ const ManagementSection = ({ quoteModeState }) => {
 	);
 };
 
+/**
+ * The main component that contains all the UI and functionality
+ * specifically for the website quote page
+ */
 export default function Quote() {
 	let htmlData = '<p>This is some <strong>rich HTML</strong> content.</p>';
 	const richTextField = {
@@ -2299,6 +2615,8 @@ export default function Quote() {
 		'quoteTrimColor',
 		'quoteMeasurement',
 		'infoButton',
+		'quoteGrilleColor',
+		'quoteScreen',
 	];
 
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
@@ -2332,8 +2650,6 @@ export default function Quote() {
 		}
 		getTitles().then(() => {});
 
-		// w
-
 		initialized = true;
 	}, [getTitles]);
 
@@ -2347,7 +2663,10 @@ export default function Quote() {
 	// 	}
 	// , });
 
-	// Solution Link: https://stackoverflow.com/questions/43441856/how-to-scroll-to-an-element
+	/**
+	 *  Solution Link: https://stackoverflow.com/questions/43441856/how-to-scroll-to-an-element
+	 *
+	 */
 	const interiorRef = useRef(null);
 
 	const [availableFrameTypes, setAvailableFrameTypes] = useState({
@@ -2459,6 +2778,8 @@ export default function Quote() {
 										data={data[3]}
 										selectedFrame={selectedFrame}></ExteriorColorType>
 									<TrimCategory data={data[5]} selectedFrame={selectedFrame}></TrimCategory>
+									<GrilleCategory data={data[8]} selectedFrame={selectedFrame}></GrilleCategory>
+									<ScreenCategory data={data[9]}></ScreenCategory>
 									<Measurements data={data[6]}></Measurements>
 
 									<div className='border p-2 flex flex-col justify-center border-gray-500 bg-white'>
