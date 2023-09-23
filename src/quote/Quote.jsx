@@ -26,14 +26,7 @@ import windowWithoutGrilleImg from '../assets/quote/windowWithoutGrille.jpg';
 import windowScreenImg from '../assets/quote/windowScreen.jpg';
 
 import { Dialog, Disclosure, Transition, Menu, Listbox } from '@headlessui/react';
-import {
-	ChevronUpIcon,
-	ChevronDownIcon,
-	ChevronUpDownIcon,
-	CheckIcon,
-	PlusIcon,
-	MinusIcon,
-} from '@heroicons/react/20/solid';
+import { PlusIcon, MinusIcon } from '@heroicons/react/20/solid';
 import { PhotoIcon as TempPhoto } from '@heroicons/react/24/solid';
 import {
 	MinusCircleIcon,
@@ -66,6 +59,10 @@ import 'swiper/css/pagination';
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import { scaleBetween } from 'parallax-controller';
 // import { isHtmlElement } from 'react-router-dom/dist/dom.js';
+
+import SingleHung from './windows/singleHung.jsx';
+import Fixed from './windows/fixed.jsx';
+
 const styles = {
 	all: {
 		backgroundPosition: '50% 50%',
@@ -124,10 +121,27 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 		else modeState[1]('Customize');
 	};
 	const message = 'Not Set';
-
 	const createSlides =
 		selectedWindow && selectedRoom ? (
 			selectedRoom.windows.map((window, index) => {
+				let windowImg = null;
+				const props = {
+					colorName: window.exterior,
+					style: { height: '25%', width: '25%' },
+					className: 'm-4',
+				};
+
+				switch (window.type) {
+					case 'Fixed':
+						windowImg = <Fixed {...props} />;
+						break;
+					case 2:
+						windowImg = <></>;
+						break;
+					default:
+						windowImg = <></>;
+				}
+
 				return (
 					<SwiperSlide className='min-w-full ' key={index}>
 						<div
@@ -163,12 +177,20 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 							{!isModal &&
 								(window.img != null ? (
 									<>
-										<img
-											className='my-2 h-60 max-w-xs lg:max-w-md'
-											src={window.img}
-											// src={availableFrameTypes.img != null ? availableFrameTypes.img : null}
-											alt=''
-										/>
+										{/* {window.type == 'Single Hung' ? (
+											<Fixed
+												className='  m-4'
+												style={{ height: '25%', width: '25%' }}
+												colorName={window.exterior}></Fixed>
+										) : (
+											<img
+												className='my-2 h-60 max-w-xs lg:max-w-md'
+												src={window.img}
+												// src={availableFrameTypes.img != null ? availableFrameTypes.img : null}
+												alt=''
+											/>
+										)} */}
+										{windowImg}
 										<div className='border p-1 flex flex-col justify-center border-gray-500 bg-white'>
 											<div className='font-semibold text-xl text-textPrimary2'>
 												{' '}

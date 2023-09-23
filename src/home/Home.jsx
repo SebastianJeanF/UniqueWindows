@@ -5,6 +5,7 @@ import { GrContactInfo } from 'react-icons/gr';
 import { TbWindow } from 'react-icons/tb';
 import { motion } from 'framer-motion';
 import { CustomLink } from '../components/Nav.jsx';
+
 function Home() {
 	const container = {
 		hidden: { opacity: 0, transform: 'translateX(calc(-10vw))' },
