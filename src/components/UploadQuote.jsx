@@ -58,7 +58,6 @@ const quoteData = {
 async function createEntry() {
 	const space = await authClient.getSpace('dd68j6yxui75');
 	const env = await space.getEnvironment('master');
-	console.log('env', env);
 	try {
 		env.createEntry('quotes', contentfulData);
 		const asset = await env.createAsset({
@@ -84,10 +83,8 @@ async function createEntry() {
 
 		// Retrieve the URL of the published Asset
 		const assetUrl = `https:${asset.fields.file['en-US'].url}`;
-		console.log('PDF uploaded to Contentful:', assetUrl);
-		console.log('SUCCESS');
 	} catch (error) {
-		console.log(error);
+		// console.log(error);
 	}
 }
 // const space = authClient.getSpace('dd68j6yxui75');
@@ -141,6 +138,7 @@ async function generatePDF(rooms, event) {
 	pdfDoc.setFontSize(16);
 	pdfDoc.setFont('helvetica', 'normal');
 	yPos += 15;
+
 	for (let [rIndex, room] of enumerate(rooms)) {
 		if (!isFirstRoom) {
 			pdfDoc.addPage();
@@ -168,8 +166,8 @@ async function generatePDF(rooms, event) {
 			pdfDoc.text(title, getCenterX(title, pdfDoc), yPos);
 			yPos += 15;
 			for (let [key, value] of Object.entries(window)) {
-				console.log(key, value);
-				console.log(key == 'photo');
+				// console.log(key, value);
+				// console.log(key == 'photo');
 
 				if (key == 'img') continue;
 				if (key == 'customTypePhotoReference' && !value) continue;
@@ -185,7 +183,6 @@ async function generatePDF(rooms, event) {
 					pdfDoc.text(getCenterX(title, pdfDoc), yPos, title);
 					yPos += 10;
 					for (let file of value) {
-						console.log('This is the file that might be a blob: ', file);
 						await getFileResolution(file)
 							.then(async (resolution) => {
 								const imageURL = URL.createObjectURL(file);
@@ -203,7 +200,7 @@ async function generatePDF(rooms, event) {
 								yPos += 10;
 							})
 							.catch((error) => {
-								console.error('Error:', error.message);
+								// console.error('Error:', error.message);
 							});
 					}
 					yPos += 2;
@@ -222,7 +219,7 @@ async function generatePDF(rooms, event) {
 				}
 				if (key == 'price') {
 					value = `$${value}`;
-					console.log('This is yPos', yPos, 'This is pageHeight, ', pageHeight);
+					// console.log('This is yPos', yPos, 'This is pageHeight, ', pageHeight);
 				}
 				if (key == 'interior' || key == 'exterior') {
 					key = `${key} Color`;
@@ -235,6 +232,7 @@ async function generatePDF(rooms, event) {
 			}
 		}
 	}
+
 	// await Promise.all(promises);
 	return pdfDoc;
 }
@@ -254,7 +252,7 @@ async function FirebaseForm(pdfDoc) {
 			.then((snapshot) => {
 				getDownloadURL(snapshot.ref)
 					.then((url) => {
-						console.log(url);
+						// console.log(url);
 						resolve(url); // Resolve the Promise with the URL
 					})
 					.catch((error) => {
@@ -277,8 +275,6 @@ function addLinkToPDF(pdfDoc, yPos, linkText, linkUrl) {
 }
 
 export async function FirebaseFileUpload(file) {
-	console.log('This is selectedFile', file);
-
 	const storageRef = ref(storage, 'some-child-test');
 
 	return new Promise((resolve, reject) => {
@@ -286,7 +282,7 @@ export async function FirebaseFileUpload(file) {
 			.then((snapshot) => {
 				getDownloadURL(snapshot.ref)
 					.then((url) => {
-						console.log(url);
+						// console.log(url);
 						resolve(url); // Resolve the Promise with the URL
 					})
 					.catch((error) => {
@@ -301,26 +297,25 @@ export async function FirebaseFileUpload(file) {
 
 async function ContentfulUpload(link, contentType) {
 	const day = new Date().getDate();
-	const month = new Date().getMonth();
+	const month = new Date().getMonth() + 1;
 	const time = new Date().getTime();
 	let subTitle;
-
+	let sub2Title;
 	const userClient = createAuthClient({
 		accessToken: 'CFPAT-LGhcYfQLYGuJfheeSokUoWRLA5MUj6wxdr5vn5sTIOU',
 		space: 'dd68j6yxui75',
 	});
-	console.log('This is link', link);
 	const space = await userClient.getSpace('dd68j6yxui75');
 	const env = await space.getEnvironment('master');
-	console.log('env', env);
 	if (contentType == 'quotes') {
 		subTitle = 'quote';
+		sub2Title = 'Quote';
 	} else if (contentType == 'contactFormSubmisssions') {
 		subTitle = 'contactForm';
+		sub2Title = 'Contact Form';
 	}
-	const title = `(${month}-${day}) ${subTitle}-${Math.floor(time / 1000)}`;
+	const title = `(${month}-${day}) ${sub2Title}`;
 	try {
-		// env.createEntry('testUser', contentfulData);
 		const asset = await env.createAsset({
 			fields: {
 				title: {
@@ -341,10 +336,9 @@ async function ContentfulUpload(link, contentType) {
 		try {
 			await asset.publish();
 		} catch {
-			console.log('Error warning');
+			// console.log('Error warning');
 		}
 		const mediaAssetId = asset.sys.id;
-		console.log('This is asset id', mediaAssetId);
 
 		const entry = await env.createEntry(contentType, {
 			fields: {
@@ -368,9 +362,8 @@ async function ContentfulUpload(link, contentType) {
 
 		// Retrieve the URL of the published Asset
 		// const assetUrl = `https:${asset.fields.file['en-US'].url}`;
-		console.log('SUCCESS');
 	} catch (error) {
-		console.log(error);
+		// console.log(error);
 	}
 }
 export function PDFGenerator() {
@@ -443,16 +436,15 @@ export async function uploadContactForm(data, files) {
 
 				pdfDoc.addImage(imageURL, 'JPEG', getCenterX(width, pdfDoc), yPos, width, height);
 				yPos += 10 + height;
-				console.log('Resolution:', resolution.width, 'x', resolution.height);
+				// console.log('Resolution:', resolution.width, 'x', resolution.height);
 			})
 			.catch((error) => {
-				console.error('Error:', error.message);
+				// console.error('Error:', error.message);
 			});
 		yPos += 10;
 
 		addLinkToPDF(pdfDoc, yPos, linkText, linkUrl);
 	}
-	pdfDoc.save();
 	// let link = await FirebaseForm(pdfDoc);
 	// ContentfulUpload(link, 'contactFormSubmisssions');
 }
@@ -517,8 +509,7 @@ function addFormToPDF(event, pdfDoc) {
 export async function completeQuote(event, rooms) {
 	event.preventDefault();
 	let pdfDoc = await generatePDF(rooms, event);
-	pdfDoc.save();
-	// let link = await FirebaseForm(pdfDoc);
-	// ContentfulUpload(link, 'quotes');
+	let link = await FirebaseForm(pdfDoc);
+	ContentfulUpload(link, 'quotes');
 	// Save the PDF
 }

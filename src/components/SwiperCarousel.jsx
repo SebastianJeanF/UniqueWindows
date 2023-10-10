@@ -78,7 +78,10 @@ const Slides = DATA.map((slide, k) => {
 		<SwiperSlide>
 			<div
 				className='w-full relative bg-cover bg-center'
-				style={{ backgroundImage: `url(${slide.img})`, height: '53vh' }}>
+				style={{
+					backgroundImage: `url(${slide.img})`,
+					height: '53vh',
+				}}>
 				<div className='-z-10 absolute w-full h-full bg-gray-200'></div>
 				<motion.div
 					variants={container}
@@ -152,8 +155,8 @@ export default () => {
 				effect={'fade'}
 				spaceBetween={100}
 				slidesPerView={1}
-				onSlideChange={() => console.log('slide change')}
-				onSlideNextTransitionStart={() => console.log('slide changed!!!')}
+				// onSlideChange={() => console.log('slide change')}
+				// onSlideNextTransitionStart={() => console.log('slide changed!!!')}
 				onSwiper={(swiper) => {
 					swiperObj.current = swiper;
 				}}>

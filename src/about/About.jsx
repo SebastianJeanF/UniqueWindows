@@ -8,6 +8,7 @@ import Masthead from '../components/NewMasthead.jsx';
 import { HiOutlineReceiptTax } from 'react-icons/hi';
 import { FaHandshake } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import SVGComponent from '../assets/blurry-gradient-haikei.jsx';
 
 export default function About() {
 	const container = {
@@ -41,7 +42,11 @@ export default function About() {
 		//   <i class='bi bi-chevron-right pr-5'></i>Learn more
 		// </a>
 		<div className='App'>
-			<Masthead img={img2} title={'ABOUT US'} subtitle={'INFORMATION ABOUT WINDOWS'}></Masthead>
+			<Masthead
+				img={img2}
+				title={'ABOUT US'}
+				className='classic-gradient'
+				subtitle={'INFORMATION ABOUT WINDOWS'}></Masthead>
 
 			<section className=''>
 				<div className=' mx-auto'>
@@ -102,7 +107,7 @@ export default function About() {
 										</div>
 									</div>
 								</motion.div>
-								<motion.div
+								{/* <motion.div
 									initial={{ transform: 'translateX(calc(10vw))', opacity: 0 }}
 									whileInView={{
 										transform: 0,
@@ -114,11 +119,11 @@ export default function About() {
 										className='mx-auto my-auto w-3/5 min-h-full '
 										src={img1}
 									/>
-								</motion.div>
+								</motion.div> */}
 							</div>
 						</div>
 					</div>
-					<div className='mt-4 md:m-0 py-16 rounded' style={{ backgroundColor: '#F7F7F7' }}>
+					<div className='mt-4 md:m-0 py-16 rounded' style={{ backgroundColor: '#EEEEEE' }}>
 						<div className='container md:flex m-auto px-6 md:px-12 xl:px-6'>
 							<div className='space-y-6 md:space-y-0 flex flex-col xl:flex-row gap-6  xl:gap-12'>
 								<motion.div
@@ -170,7 +175,7 @@ export default function About() {
 										</div>
 									</div>
 								</motion.div>
-								<motion.div
+								{/* <motion.div
 									initial={{ transform: 'translateX(calc(-10vw))', opacity: 0 }}
 									whileInView={{
 										transform: 0,
@@ -178,7 +183,7 @@ export default function About() {
 										transition: { type: 'Inertia', duration: 0.5 },
 									}}>
 									<img className='mx-auto  w-2/5 ' src={img3} />
-								</motion.div>
+								</motion.div> */}
 							</div>
 						</div>
 					</div>

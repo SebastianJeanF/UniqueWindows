@@ -25,22 +25,10 @@ function FirebaseUpload() {
 
 		uploadBytes(imageRef, imageUpload).then((snapshot) => {
 			getDownloadURL(snapshot.ref).then((url) => {
-				console.log(url);
+				// console.log(url);
 			});
 		});
 	};
-
-	// return (
-	// 	<div className='App'>
-	// 		<input
-	// 			type='file'
-	// 			onChange={(event) => {
-	// 				setImageUpload(event.target.files[0]);
-	// 			}}
-	// 		/>
-	// 		<button onClick={uploadFile}>Upload</button>
-	// 	</div>
-	// );
 }
 
 let htmlData = '<p>This is some <strong>rich HTML</strong> content.</p>';
@@ -126,7 +114,6 @@ export function Form({ setMode }) {
 		(async () => {
 			const space = await userClient.getSpace('dd68j6yxui75');
 			const env = await space.getEnvironment('master');
-			console.log('env', env);
 			try {
 				// env.createEntry('testUser', contentfulData);
 				const asset = await env.createAsset({
@@ -153,10 +140,8 @@ export function Form({ setMode }) {
 
 				// Retrieve the URL of the published Asset
 				const assetUrl = `https:${asset.fields.file['en-US'].url}`;
-				console.log('PDF uploaded to Contentful:', assetUrl);
-				console.log('SUCCESS');
 			} catch (error) {
-				console.log(error);
+				// console.log(error);
 			}
 		})();
 		// const space = userClient.getSpace('dd68j6yxui75');
@@ -177,7 +162,7 @@ export function Form({ setMode }) {
 				<div>
 					<div className='mt-4 font-semibold text-xl text-gray-600'>Quote Form</div>
 					<p className='text-gray-500 mb-6'>
-						Fill out this form, and wsdse'll get back to you within 24 hours!
+						Fill out this form, and we'll get back to you within 24 hours!
 					</p>
 
 					<div className='bg-white rounded shadow-lg p-4 px-4 md:p-8 mb-6'>
@@ -194,8 +179,8 @@ export function Form({ setMode }) {
 									onSubmit={(e) => {
 										e.preventDefault();
 										completeQuote(e, rooms);
-										// setMode('Complete');
-										// setIsQuoteComplete(true);
+										setMode('Complete');
+										setIsQuoteComplete(true);
 									}}
 									className='grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5'>
 									<div className='md:col-span-5'>

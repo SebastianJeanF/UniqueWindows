@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import Navigation from '../components/Nav';
@@ -8,14 +8,14 @@ import Home from './Home';
 function App() {
 	return (
 		<div className='flex flex-col '>
-			<Navigation className='top-0' />
-			<Home className='relative' />
+			<Navigation />
+			<Home />
 			<Footer />
 		</div>
 	);
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<React.StrictMode>
 		<BrowserRouter>
 			<App></App>

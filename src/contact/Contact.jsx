@@ -9,6 +9,7 @@ import { LuUploadCloud } from 'react-icons/lu';
 import { TiDelete } from 'react-icons/ti';
 import React from 'react';
 import { useRef, useState } from 'react';
+import { Parallax } from 'react-scroll-parallax';
 
 function Form({ setIsCompleted }) {
 	const [selectedFile, setSelectedFile] = useState(null);
@@ -30,8 +31,8 @@ function Form({ setIsCompleted }) {
 				},
 			})
 
-			.then((response) => console.log(response))
-			.catch((error) => console.log(error));
+			.then((response) => {})
+			.catch((error) => {});
 
 		// Source: https://stackoverflow.com/questions/66491991/formsubmit-co-form-not-working-in-reactapp
 		fetch('https://formsubmit.co/ajax/1a2b11a3a911d60a02b691a125a1d5c0', {
@@ -64,8 +65,8 @@ function Form({ setIsCompleted }) {
 		<div className=' bg-gray-100 lg:bg-inherit p-6  lg:mt-4 w-full   '>
 			<div className=' container mx-auto  lg:w-4/5  lg:max-w-screen-lg'>
 				<div>
-					<h2 className='font-semibold text-xl text-gray-600'>Contact Form</h2>
-					<p className='text-gray-500 mb-6'>
+					<h2 className='font-semibold text-xl text-black'>Contact Form</h2>
+					<p className='text-black mb-6'>
 						Fill out this form if you have any questions, and we'll get back to you!
 					</p>
 					<div className='text-textPrimary'>
@@ -73,7 +74,7 @@ function Form({ setIsCompleted }) {
 					</div>
 					<div className='bg-white rounded shadow-2xl p-4 px-4 navmd:p-8 mb-6'>
 						<div className=''>
-							{/* <div className='text-gray-600'>
+							{/* <div className='text-black'>
 								<p className='font-medium text-lg'>Personal Details</p>
 								<p>Please fill out all the fields.</p>
 							</div> */}
@@ -182,7 +183,7 @@ function Form({ setIsCompleted }) {
 										</label>
 										<input
 											onChange={(e) => {
-												console.log(e.target.files[0]);
+												// console.log(e.target.files[0]);
 												setSelectedFile(e.target.files[0]);
 											}}
 											className='form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0
@@ -258,7 +259,17 @@ function Contact() {
 			<Masthead
 				img={img1}
 				title={'Contact Us'}
+				className='contact-gradient'
 				subtitle={"Please let us know how we can help, and we'll be in touch shortly."}></Masthead>
+			{/* <div id={'animate-area'} className='  bg-about-title'>
+				<Parallax speed={-25} className='-z-10 h-full flex flex-col  items-center  '>
+					<div className='about-title-header'>Contact Us</div>
+
+					<hr className='mx-auto'></hr>
+					<p>Please let us know how we can help, and we'll be in touch shortly.</p>
+				</Parallax>
+			</div> */}
+
 			{isCompleted ? (
 				<div className='min-h-screen'>
 					<div className='min-h-full text-center mt-20 font-semibold text-xl'>
@@ -273,8 +284,8 @@ function Contact() {
 					whileInView='show'
 					className='flex flex-col items-center lg:flex-row lg:items-start lg:justify-between'>
 					<section className='  mx-auto container self-stretch flex flex-col-reverse justify-start lg:flex-col p-6 mt-4  '>
-						<div className=' mb-8 mx-auto  text-textPrimary '>
-							<div className='font-medium text-textPrimary2 leading-10 font-height text-2xl mb-5'>
+						<div className=' mb-8 mx-auto  text-black '>
+							<div className='font-medium text-black leading-10 font-height text-2xl mb-5'>
 								We assure your complete satisfaction throughout your window installation journey
 								with us.
 							</div>
@@ -317,17 +328,15 @@ function Contact() {
 								</div>
 							</div>
 						</div>
-						<div className='text-textPrimary container mt-5 pb-5 mb-5 xl:w-1/2 mx-auto flex flex-col justify-around'>
+						<div className='text-blackcontainer mt-5 pb-5 mb-5 xl:w-1/2 mx-auto flex flex-col justify-around'>
 							<div>
-								<h1 className='text-4xl font-medium text-center text-headerPrimary'>
-									Contact Info
-								</h1>
+								<h1 className='text-4xl font-medium text-center text-black'>Contact Info</h1>
 								<hr className='mx-auto'></hr>
 								<ul className='list-group list-group-flush lead '>
 									<li
 										style={{ fontSize: 'clamp(1rem, 2vw + 0.25rem, 1.25rem)' }}
 										className=' flex flex-col items-center justify-center  mb-2 overflow text-center'>
-										<span className='text-center text-headerPrimary font-medium'>Email: </span>
+										<span className='text-center text-black font-medium'>Email: </span>
 										<div className=' p-1 text-overflow-center mx-auto text-center'>
 											uniquewindowsrenovations@gmail.com
 										</div>
@@ -336,7 +345,7 @@ function Contact() {
 									<li
 										style={{ fontSize: 'clamp(1rem, 2vw + 0.25rem, 1.25rem)' }}
 										className=' flex flex-col items-center mb-2 text-center '>
-										<span className='text-headerPrimary font-medium'>Phone Number: </span>
+										<span className='text-black font-medium'>Phone Number: </span>
 										<div className='text-overflow-center p-1 '>770-990-6603</div>
 									</li>
 								</ul>
@@ -366,7 +375,6 @@ function FileUploadForm({ fileCategory, selectedFiles, setSelectedFiles }) {
 		if (!uploadedFile) {
 			const updatedFiles = [...selectedFiles];
 			updatedFiles.splice(index, 1);
-			console.log(updatedFiles);
 			setSelectedFiles(updatedFiles);
 			return;
 		}
@@ -388,7 +396,7 @@ function FileUploadForm({ fileCategory, selectedFiles, setSelectedFiles }) {
 	};
 
 	const handleFileChange = (event) => {
-		console.log(event.target);
+		// console.log(event.target);
 
 		const uploadedFile = event.target.files;
 		update(uploadedFile);
@@ -414,7 +422,6 @@ function FileUploadForm({ fileCategory, selectedFiles, setSelectedFiles }) {
 		update(null);
 	};
 	const fileInputId = generateUniqueId();
-	console.log('selectedFiles', selectedFiles);
 	return (
 		<form>
 			{errorMessage && <p className='mt-4 text-red-500'>{errorMessage}</p>}
@@ -434,7 +441,6 @@ function FileUploadForm({ fileCategory, selectedFiles, setSelectedFiles }) {
 				/>
 				<div
 					onClick={() => {
-						console.log('id', document.getElementById(fileInputId));
 						document.getElementById(fileInputId).click();
 					}}
 					className='bg-gray-200 pt-4 cursor-pointer flex flex-col items-center border-4 border-dashed border-blue-200 text-xl'>

@@ -8,6 +8,8 @@ const SVGComponent = ({ colorName, props }) => {
 	const base = 199;
 	const fill = getRGBMap(colorName, shades, base);
 
+	// Learned how to add a texture to SVG from Stack Overflow: https://stackoverflow.com/questions/54605976/apply-a-texture-to-an-image-in-svg
+	// Learned how to format texture properly from Stack Overflow: https://stackoverflow.com/questions/23227195/how-to-make-svg-fill-act-in-a-similar-way-to-css-background-size-cover#:~:text=To%20fix%20this%2C%20add%20an%20appropriate%20preserveAspectRatio%20attribute,want%20the%20image%20to%20be%20zoomed%20and%20sliced.
 	return (
 		<svg
 			width='33.602089mm'
@@ -42,12 +44,26 @@ const SVGComponent = ({ colorName, props }) => {
 				inkscape:window-maximized={0}
 				inkscape:current-layer='layer1'
 			/>
-			<defs id='defs1' />
+
+			<defs>
+				<filter id='texture'>
+					<feImage
+						href='https://images.ctfassets.net/dd68j6yxui75/6ZQVf1jLUbLB7GtUjNCSWg/af678d0cfa590c758550eeeef9134a6b/Provincial-Stain.png'
+						result='texture-img'
+						preserveAspectRatio='xMinYMin slice'
+					/>
+					<feComposite in2='SourceGraphic' operator='in' in='texture-img' result='composite' />
+					<feBlend in='SourceGraphic' in2='composite' mode='multiply' />
+				</filter>
+			</defs>
+
 			<g
 				inkscape:label='Layer 1'
 				inkscape:groupmode='layer'
 				id='layer1'
-				transform='translate(-92.121963,-120.71384)'>
+				transform='translate(-92.121963,-120.71384)'
+				// filter='url(#texture)'
+			>
 				<g id='g47' transform='translate(-34.912267,17.187577)'>
 					<path
 						style={{

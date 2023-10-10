@@ -33,43 +33,41 @@ function Products() {
 
 	return (
 		<div>
-			<Masthead img={img2} title={'Products'}></Masthead>
-			<section className=' '>
-				<div className=' mx-auto'>
-					<div className=' py-12 '>
-						<div className=' container  m-auto md:flex px-6 text-gray-600 md:px-12 xl:px-6'>
-							<div className='space-y-6 md:space-y-0 flex flex-col xl:items-center  gap-6  xl:gap-12'>
-								<div className='text-textPrimary'>
-									<TbWindow className='text-gray-800 h-10 w-10 mx-auto'></TbWindow>
+			<Masthead img={img2} className='products-gradient' title={'Products'}></Masthead>
+			<section style={{ height: '40vh' }} className=''>
+				<div className=' py-12 mx-auto '>
+					<div className=' container  m-auto md:flex px-6 text-gray-600 md:px-12 xl:px-6'>
+						<div className='space-y-6 md:space-y-0 flex flex-col xl:items-center  gap-6  xl:gap-12'>
+							<div className='text-textPrimary'>
+								<TbWindow className='text-gray-800 h-10 w-10 mx-auto'></TbWindow>
 
-									<div className='text-2xl text-center text-gray-800 font-bold md:text-4xl'>
-										Windows
-									</div>
-									<hr className='mx-auto'></hr>
-									<div style={{ fontSize: '1rem' }}>
-										<div class='mt-6 '>
-											With Unique Windows, we offer high-quality window installation services for
-											both residential and commercial properties. We specialize in providing
-											custom-fit windows that perfectly suit your building's design and
-											architecture, while also meeting your energy-efficiency needs. Our team of
-											experienced professionals is dedicated to providing excellent customer
-											service, ensuring that every project is completed on time and within budget.
-											Whether you're building a new home or upgrading your existing windows, we have
-											the expertise to help you achieve your goals.
-										</div>
+								<div className='text-2xl text-center text-gray-800 font-bold md:text-4xl'>
+									Windows
+								</div>
+								<hr className='mx-auto'></hr>
+								<div style={{ fontSize: '1rem' }}>
+									<div class='mt-6 '>
+										With Unique Windows, we offer high-quality window installation services for both
+										residential and commercial properties. We specialize in providing custom-fit
+										windows that perfectly suit your building's design and architecture, while also
+										meeting your energy-efficiency needs. Our team of experienced professionals is
+										dedicated to providing excellent customer service, ensuring that every project
+										is completed on time and within budget. Whether you're building a new home or
+										upgrading your existing windows, we have the expertise to help you achieve your
+										goals.
 									</div>
 								</div>
-								{/* <img
+							</div>
+							{/* <img
 									style={{ height: '50%' }}
 									className='contactUs my-auto fade-right'
 									src={img3}
 								/> */}
-							</div>
 						</div>
 					</div>
 				</div>
 			</section>
-			<section style={{ backgroundColor: '#F7F7F7' }}>
+			{/* <section style={{ backgroundColor: '#F7F7F7' }}>
 				<div className='pt-6 px-6'>
 					<div className='text-center text-2xl font-semibold'>Explore By Material</div>
 					<div className='flex flex-col md:flex-row justify-center items-center gap-1 mt-6 pb-8'>
@@ -101,10 +99,9 @@ function Products() {
 							</span>
 						</div>
 					</div>
-					{/* <div style={{ padding: '.25px' }} className='my-8 bg-gray-300'></div> */}
 					<div></div>
 				</div>
-			</section>
+			</section> */}
 		</div>
 	);
 }

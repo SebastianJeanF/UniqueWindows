@@ -4,7 +4,63 @@
 @tailwind components;
 @tailwind utilities;
 
+/* October 10th, Masthead CSS */
+.classic-gradient {
+  background-image: 
+    linear-gradient(to bottom, #3063c9 -16% -16%, #fff 100%)
+  ;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.classic-gradient {
+  background-image: 
+    radial-gradient(
+      farthest-corner circle at 50% 50%, 
+      #3063c9 -16% -16%, #fff 100%
+    )
+  ;
+}
+.payment-gradient{
+  background-image: 
+    radial-gradient(
+      farthest-corner circle at 50% 50%, 
+      #96e3d6 0%, #fff 100%
+    )
+  ;
+}
+.contact-gradient {
+  background-image: 
+    radial-gradient(
+      farthest-corner circle at 50% 50%, 
+      #d6d6d6 0%, #fff 100%
+    )
+  ;
+}
+.products-gradient {
+  background-image: 
+    radial-gradient(
+      farthest-corner circle at 50% 50%, 
+      #ebcfba 0%, #fff 100%
+    )
+  ;
+}
 
+/* .classic-gradient {
+  background-image: 
+    conic-gradient(
+      from 0deg at 0% 0%, 
+      #00f600 0%, #0003ff 100%
+    )
+  ;
+} */
+.classic-gradient {
+  background-image: 
+    radial-gradient(
+      farthest-corner circle at 50% 50%, 
+      #96b3d6 0%, #fff 100%
+    )
+  ;
+}
 
 
 /* Button Animation in Home Page */

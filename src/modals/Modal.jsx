@@ -336,7 +336,6 @@ function Test() {
 
 export default function Example({ open, setOpen }) {
 	// const [open, setOpen] = useState(true)
-	console.log(status);
 	const cancelButtonRef = useRef(null);
 
 	// const handleSubmit = (evt) => {

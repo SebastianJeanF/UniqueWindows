@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
 	useEffect,
 	useContext,
@@ -60,8 +61,13 @@ import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import { scaleBetween } from 'parallax-controller';
 // import { isHtmlElement } from 'react-router-dom/dist/dom.js';
 
-import SingleHung from './windows/singleHung.jsx';
-import Fixed from './windows/fixed.jsx';
+// Windows
+import Bay from './windows/Bay.jsx';
+import Fixed from './windows/Fixed.jsx';
+import DoubleHung from './windows/DoubleHung.jsx';
+import SingleHung from './windows/SingleHung.jsx';
+import Awning from './windows/Awning.jsx';
+import Casement from './windows/Casement.jsx';
 
 const styles = {
 	all: {
@@ -108,6 +114,7 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 	const setMode = modeState[1];
 	const [isOpen, setIsModalOpen] = useState(false);
 	const [modalMode, setModalMode] = useState(false);
+	const [windowSide, setWindowSide] = useState('Exterior');
 	useEffect(() => {
 		if (swiper && carouselReinitialized) {
 			swiper.slideTo(swiper.slides.length - 1);
@@ -124,10 +131,11 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 	const createSlides =
 		selectedWindow && selectedRoom ? (
 			selectedRoom.windows.map((window, index) => {
-				let windowImg = null;
+				let windowImg;
+
 				const props = {
-					colorName: window.exterior,
-					style: { height: '25%', width: '25%' },
+					colorName: windowSide == 'Exterior' ? window.exterior : window.interior,
+					style: { height: '2%', width: '2%' },
 					className: 'm-4',
 				};
 
@@ -135,18 +143,34 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 					case 'Fixed':
 						windowImg = <Fixed {...props} />;
 						break;
-					case 2:
-						windowImg = <></>;
+					case 'Single Hung':
+						windowImg = <SingleHung {...props} />;
+						break;
+					case 'Double Hung':
+						windowImg = <DoubleHung {...props} />;
+						break;
+					case 'Casement':
+						windowImg = <Casement {...props} />;
+						break;
+					case 'Bay':
+						windowImg = <Bay {...props} />;
+						break;
+					case 'Awning':
+						windowImg = <Awning {...props} />;
 						break;
 					default:
 						windowImg = <></>;
 				}
-
+				console.log(selectedRoom);
 				return (
-					<SwiperSlide className='min-w-full ' key={index}>
+					<SwiperSlide
+						className='min-w-full bg-white shadow-xl  flex flex-row items-center justify-center'
+						key={index}>
 						<div
-							style={{ minHeight: '24rem' }}
-							className=' p-4 flex flex-col items-center  justify-between mx-auto  shadow-xl  sticky windowModal  bg-white'>
+							// style={{
+							// 	minHeight: selectedRoom && selectedRoom.windows.length > 1 ? '44rem' : '24rem',
+							// }}
+							className='  p-4 flex flex-col items-center  justify-between mx-auto   sticky windowModal '>
 							{mode == 'Manage' && (
 								<button
 									onClick={() => {
@@ -191,7 +215,29 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 											/>
 										)} */}
 										{windowImg}
-										<div className='border p-1 flex flex-col justify-center border-gray-500 bg-white'>
+										<div className='mt-4 text-base not-italic font-normal tracking-[normal] leading-6 text-center indent-[0px] normal-case align-baseline whitespace-normal bg-scroll bg-[rgba(0,0,0,0)] bg-none bg-[0%_0%] bg-repeat text-black h-[41.3333px] w-[296.667px] max-h-[none] min-h-[auto] max-w-[360px] min-w-[auto] static float-none flex clear-none z-auto list-disc list-outside border-spacing-[0px_0px] table-auto overflow-visible cursor-auto visible transition-all duration-[0s] ease-[ease] delay-[0s] outline-offset-0 box-border resize-none text-clip shadow-none mx-0 p-1 rounded-br-none rounded-t-none rounded-bl-none border-[0.666667px] border-solid border-black border-separate inset-auto'>
+											<div
+												onClick={() => setWindowSide('Exterior')}
+												className={`font-semibold ${
+													windowSide == 'Exterior' ? 'bg-black text-white' : 'text-gray-500'
+												} leading-6 text-center h-8 w-[143.667px]  static float-none block clear-none z-auto list-disc list-outside border-spacing-[0px_0px] table-auto overflow-visible cursor-pointer visible transition-all duration-[0.2s] ease-[ease] delay-[0s] outline-offset-0 box-border resize-none text-clip shadow-none m-0 p-1 rounded-br-none rounded-t-none rounded-bl-none border-0 border-solid border-t border-r border-b border-l border-separate inset-auto`}>
+												Exterior
+											</div>
+											<div
+												onClick={() => setWindowSide('Interior')}
+												className={`font-semibold ${
+													windowSide == 'Interior' ? 'bg-black text-white' : 'text-gray-500'
+												} leading-6 text-center h-8 w-[143.667px]  static float-none block clear-none z-auto list-disc list-outside border-spacing-[0px_0px] table-auto overflow-visible cursor-pointer visible transition-all duration-[0.2s] ease-[ease] delay-[0s] outline-offset-0 box-border resize-none text-clip shadow-none m-0 p-1 rounded-br-none rounded-t-none rounded-bl-none border-0 border-solid border-t border-r border-b border-l border-separate inset-auto`}>
+												Interior
+											</div>
+										</div>
+										{/* <div className='mt-4 border p-1 flex flex-col justify-center border-gray-500 bg-white'>
+											<div className='font-semibold text-xl text-textPrimary2'>
+												{' '}
+												Price: ${window.price}{' '}
+											</div>
+										</div> */}
+										<div className='mt-4 border p-1 flex flex-col justify-center border-gray-500 bg-white'>
 											<div className='font-semibold text-xl text-textPrimary2'>
 												{' '}
 												Price: ${window.price}{' '}
@@ -437,7 +483,9 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 			leaveTo='opacity-0'
 			className='flex flex-row justify-center '>
 			<Swiper
-				className={`${isModal ? 'w-full' : 'w-4/5'}  border border-gray-700`}
+				className={`${
+					isModal ? 'w-full' : 'w-4/5'
+				}  border border-gray-700 flex flex-col justify-center items-center `}
 				modules={[Autoplay, Navigation, EffectFade, Pagination]}
 				autoplay={true}
 				navigation
@@ -446,14 +494,14 @@ const WindowCarousel = ({ isModal, modeState, setCategoryFocus }) => {
 				spaceBetween={50}
 				slidesPerView={1}
 				onSlidePrevTransitionStart={() => {
-					console.log('Swiper variable in prev transition', swiper.slides);
+					// console.log('Swiper variable in prev transition', swiper.slides);
 
 					if (selectedRoom.selectedWindowId > 0) {
 						roomsDispatch({ type: 'shiftWindowLeft' });
 					}
 				}}
 				onSlideNextTransitionStart={(swiper) => {
-					console.log('Swiper variable in next transition', swiper.slides);
+					// console.log('Swiper variable in next transition', swiper.slides);
 					if (selectedRoom.selectedWindowId < selectedRoom.windows.length - 1) {
 						roomsDispatch({ type: 'shiftWindowRight' });
 					}
@@ -626,17 +674,17 @@ function WindowType({ data, setAvailableFrameTypes }) {
 		)),
 
 		// Custom Item
-		<div
-			key='custom'
-			onClick={() => change(data.length)} // Define the onClick handler for the custom item
-			className={` ${
-				current[data.length] ? 'selected ' : ' hover:drop-shadow-xl cursor-pointer'
-			} transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
-			{/* Custom item content */}
-			{/* You can customize the content of the custom item based on your requirements */}
-			<img className='h-24' src={customWindowImg} />
-			<div className='text-textPrimary'>Custom Item</div>
-		</div>,
+		// <div
+		// 	key='custom'
+		// 	onClick={() => change(data.length)} // Define the onClick handler for the custom item
+		// 	className={` ${
+		// 		current[data.length] ? 'selected ' : ' hover:drop-shadow-xl cursor-pointer'
+		// 	} transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 w-32 p-2 bg-white`}>
+		// 	{/* Custom item content */}
+		// 	{/* You can customize the content of the custom item based on your requirements */}
+		// 	<img className='h-24' src={customWindowImg} />
+		// 	<div className='text-textPrimary'>Custom Item</div>
+		// </div>,
 	];
 
 	return (
@@ -724,7 +772,6 @@ function CustomWindowType({ data, setAvailableFrameTypes }) {
 
 		for (let i = 0; i < temp.length; i++) {
 			if (num == i && num == data.length) {
-				console.log('FIRED');
 				roomsDispatch({ type: 'changeCustom', custom: true });
 				roomsDispatch({ type: 'windowAttributes', windowType: 'Custom' });
 				roomsDispatch({ type: 'toggleCustomTypePhotoReference', toggle: true });
@@ -854,7 +901,7 @@ function GrillesType() {
 		</div>
 	);
 }
-function Measurements({ data }) {
+function Measurements({ windowTypeData }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	const [heightPrice, setHeightPrice] = useState(0);
@@ -869,74 +916,37 @@ function Measurements({ data }) {
 		document.getElementById('height').value = selectedWindow.height;
 	};
 
-	const changeWidthPrice = (dimension) => {
+	const changePrice = (dimension, type) => {
 		if (!dimension) {
 			return;
 		}
-		let sizeIncrement;
+
 		let defaultSize;
 		let priceIncrement;
+		let newIncrement;
 		let price = selectedWindow.price;
-		for (let i = 0; i < data.length; i++) {
-			let item = data[i].fields;
-			if (item.dimension === 'Width') {
-				sizeIncrement = item.sizeIncrement;
-				defaultSize = item.defaultSize;
-				priceIncrement = item.priceIncrement;
-			}
+
+		if (type === 'Width') {
+			defaultSize = windowTypeData.fields.customWidth.Width.size;
+			priceIncrement = windowTypeData.fields.customWidth.Width.price;
+			newIncrement = (dimension - defaultSize) * priceIncrement;
+			price -= widthPrice;
+			price += newIncrement;
+
+			setWidthPrice(newIncrement);
+			roomsDispatch({ type: 'windowAttributes', price: price });
+			roomsDispatch({ type: 'windowAttributes', width: dimension });
+		} else if (type === 'Height') {
+			defaultSize = windowTypeData.fields.customHeight.Height.size;
+			priceIncrement = windowTypeData.fields.customHeight.Height.price;
+			newIncrement = (dimension - defaultSize) * priceIncrement;
+			price -= heightPrice;
+			price += newIncrement;
+
+			setHeightPrice(newIncrement);
+			roomsDispatch({ type: 'windowAttributes', price: price });
+			roomsDispatch({ type: 'windowAttributes', height: dimension });
 		}
-		price -= widthPrice;
-		let multiplier = Math.floor((dimension - (defaultSize - sizeIncrement / 2)) / sizeIncrement);
-		let newIncrement = multiplier * priceIncrement;
-		price += newIncrement;
-
-		console.log(
-			'sizeIncrement',
-			sizeIncrement,
-			'multipler',
-			multiplier,
-			'defaultSize',
-			defaultSize,
-			'priceIncrement',
-			priceIncrement,
-			'newIncrement',
-			newIncrement,
-			'widthPrice',
-			widthPrice,
-			'price',
-			price
-		);
-
-		setWidthPrice(newIncrement);
-		roomsDispatch({ type: 'windowAttributes', price: price });
-		roomsDispatch({ type: 'windowAttributes', width: dimension });
-	};
-
-	const changeHeightPrice = (dimension) => {
-		if (!dimension) {
-			return;
-		}
-		let sizeIncrement;
-		let defaultSize;
-		let priceIncrement;
-		let price = selectedWindow.price;
-		for (let i = 0; i < data.length; i++) {
-			let item = data[i].fields;
-			if (item.dimension === 'Height') {
-				sizeIncrement = item.sizeIncrement;
-				defaultSize = item.defaultSize;
-				priceIncrement = item.priceIncrement;
-			}
-		}
-		price -= heightPrice;
-		let multiplier = Math.floor((dimension - (defaultSize - sizeIncrement) / 2) / sizeIncrement);
-		let newIncrement = multiplier * priceIncrement;
-
-		price += newIncrement;
-
-		setHeightPrice(newIncrement);
-		roomsDispatch({ type: 'windowAttributes', price: price });
-		roomsDispatch({ type: 'windowAttributes', height: dimension });
 	};
 
 	return (
@@ -957,7 +967,7 @@ function Measurements({ data }) {
 						<label className='text-textPrimary'>Width (Inches)</label>
 						<select
 							value={selectedWindow.width}
-							onChange={(e) => changeWidthPrice(parseInt(e.target.value))}
+							onChange={(e) => changePrice(parseInt(e.target.value), 'Width')}
 							name='width'
 							id='width'
 							className='h-14 w-56 border border-gray-400 px-4 bg-white'>
@@ -985,7 +995,7 @@ function Measurements({ data }) {
 						<label className='text-textPrimary'>Height (Inches)</label>
 						<select
 							value={selectedWindow.height}
-							onChange={(e) => changeHeightPrice(parseInt(e.target.value))}
+							onChange={(e) => changePrice(parseInt(e.target.value), 'Height')}
 							name='height'
 							id='height'
 							className='h-14 w-56 border border-gray-400 px-4 bg-white'>
@@ -1077,8 +1087,6 @@ function FileUploadForm({ fileCategory }) {
 	};
 
 	const handleFileChange = (event) => {
-		console.log(event.target);
-		console.log('handleFileChange', fileCategory);
 		const uploadedFile = event.target.files;
 		update(uploadedFile);
 	};
@@ -1103,7 +1111,6 @@ function FileUploadForm({ fileCategory }) {
 		update(null);
 	};
 	const fileInputId = generateUniqueId();
-	console.log('selectedFiles', selectedFiles);
 	// const [fileInputId] = useState('photos' + fileCategory);
 	return (
 		<form>
@@ -1124,7 +1131,6 @@ function FileUploadForm({ fileCategory }) {
 				/>
 				<div
 					onClick={() => {
-						console.log('id', document.getElementById(fileInputId));
 						document.getElementById(fileInputId).click();
 					}}
 					className='bg-gray-200 pt-4 cursor-pointer flex flex-col items-center border-4 border-dashed border-blue-200 text-xl'>
@@ -1217,11 +1223,16 @@ const ProjectPhoto = () => {
 	);
 };
 
-function FrameType({ availableFrameTypes, data }) {
+function FrameType({ availableFrameTypes, windowTypeData }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	const infoData = useContext(InfoContext).infoData;
-	const [current, setCurrent] = useState([...Array(data.length)]);
+	if (windowTypeData == undefined) {
+		return;
+	}
+	const data = windowTypeData.fields.frameMaterial;
+	const information = ['Vinyl', 'Wood', 'Fiberglass'];
+	const [current, setCurrent] = useState([...Array(Object.keys(data).length)]);
 	const [previousIndex, setPreviousIndex] = useState(null);
 
 	const [modalState, setModalState] = useState(false);
@@ -1231,7 +1242,7 @@ function FrameType({ availableFrameTypes, data }) {
 	}, [selectedWindow]);
 
 	useEffect(() => {}, [availableFrameTypes]);
-
+	console.log('CURRENT', current);
 	const title = <div className='text-textPrimary font-bold text-2xl'>Frame Types</div>;
 	const body = (
 		<div id='Frame' className='mt-4 text-textPrimary flex flex-col gap-4'>
@@ -1273,8 +1284,9 @@ function FrameType({ availableFrameTypes, data }) {
 
 	function initialize() {
 		const newArray = current.map((element, index) => {
-			let APIitem = data[index].fields;
-			if (selectedWindow.frame == APIitem.frameType.toLowerCase()) {
+			// let APIitem = data[index].fields;
+
+			if (selectedWindow.frame == information[index]) {
 				setPreviousIndex(index);
 				return true;
 			}
@@ -1298,21 +1310,21 @@ function FrameType({ availableFrameTypes, data }) {
 				temp[i] = undefined;
 			}
 		}
-		let APIitem = data[index].fields;
 		if (previousIndex != null) {
-			price -= data[previousIndex].fields.price;
+			price -= data[information[previousIndex]].price;
 		}
-		price += data[index].fields.price;
+		price += data[information[num]].price;
 		roomsDispatch({ type: 'windowAttributes', price: price });
 		setCurrent(temp);
-		changeFrame(APIitem);
-	}
-	function changeFrame(APIitem) {
-		roomsDispatch({ type: 'windowAttributes', frame: APIitem.frameType.toLowerCase() });
+		changeFrame(information[num]);
 	}
 
-	const listItems = data.map((item, index) =>
-		availableFrameTypes[item.fields.frameType.toLowerCase()] ? (
+	function changeFrame(title) {
+		roomsDispatch({ type: 'windowAttributes', frame: title });
+	}
+
+	const listItems = Object.entries(data).map(([title, values], index) =>
+		values.availability ? (
 			<motion.div
 				initial={{ opacity: 0 }}
 				whileInView={{ opacity: 1 }}
@@ -1321,7 +1333,7 @@ function FrameType({ availableFrameTypes, data }) {
 				className={` ${
 					current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
 				}  transition border-solid font-medium  border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 p-2 bg-white`}>
-				<div className=' text-3xl text-textPrimary'>{item.fields.frameType}</div>
+				<div className=' text-3xl text-textPrimary'>{title}</div>
 			</motion.div>
 		) : (
 			<motion.div
@@ -1329,7 +1341,7 @@ function FrameType({ availableFrameTypes, data }) {
 				whileInView={{ opacity: 1 }}
 				key={index}
 				className='border-solid font-medium  border-2 hover: border-gray-400 flex flex-col items-center justify-center h-32 p-2 opacity-50 bg-gray-200'>
-				<div className=' text-3xl text-textPrimary'>{item.fields.frameType}</div>
+				<div className=' text-3xl text-textPrimary'>{title}</div>
 				<div className='text-sm text-textPrimary font-bold'>Unavailable</div>
 			</motion.div>
 		)
@@ -1411,11 +1423,26 @@ function ItemsModal({ openState, title, body }) {
 		</>
 	);
 }
-function ExteriorColorType({ data, selectedFrame }) {
+function ExteriorColorType({ dataT, windowTypeData }) {
+	console.log('Specific window data: ', windowTypeData);
+	// const data = data.filter((item) => item.fields.title == data2.fields.exteriorColor);
+
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	const [modalState, setModalState] = useState(false);
 	const infoData = useContext(InfoContext).infoData;
+	// console.log(data2);
+	// console.log(data2[0].fields.windowTitle, selectedWindow.title);
+
+	// let  windowTypeData = data2.filter((item) => item.fields.windowTitle == selectedWindow.type);
+
+	console.log('dataT', dataT);
+	let exteriorColors = windowTypeData.fields.exteriorColor;
+	console.log('exteriorColors', exteriorColors);
+	let data = dataT.filter(
+		(item) => exteriorColors[item.fields.title] != undefined
+		// && exteriorColors[item.fields.title].availability
+	);
 
 	const [current, setCurrent] = useState([...Array(data.length)]);
 	useEffect(() => {
@@ -1424,8 +1451,8 @@ function ExteriorColorType({ data, selectedFrame }) {
 
 	function initialize() {
 		const newArray = current.map((element, index) => {
-			let APIitem = data[index].fields;
-			if (selectedWindow.exterior == APIitem.title) {
+			console.log('Data', data);
+			if (selectedWindow.exterior == data[index].fields.title) {
 				return true;
 			}
 			return false;
@@ -1433,7 +1460,7 @@ function ExteriorColorType({ data, selectedFrame }) {
 		setCurrent(newArray);
 	}
 
-	function change(num) {
+	function change(num, title) {
 		if (current[num]) {
 			return;
 		}
@@ -1443,11 +1470,12 @@ function ExteriorColorType({ data, selectedFrame }) {
 			if (num == i) {
 				temp[i] = true;
 			} else if (temp[i] == true) {
-				price -= data[i].fields.price;
+				price -= exteriorColors[data[i].fields.title].price;
 				temp[i] = undefined;
 			}
 		}
-		price += data[num].fields.price;
+		// price += data[num].fields.price;
+		price += exteriorColors[title].price;
 		roomsDispatch({ type: 'windowAttributes', price: price });
 		roomsDispatch({ type: 'windowAttributes', exterior: data[num].fields.title });
 		setCurrent(temp);
@@ -1469,12 +1497,12 @@ function ExteriorColorType({ data, selectedFrame }) {
 		</div>
 	);
 	const listItems = data.map((item, index) =>
-		item.fields.availability ? (
+		exteriorColors[item.fields.title].availability ? (
 			<motion.div
 				initial={{ opacity: 0 }}
 				whileInView={{ opacity: 1 }}
 				key={index}
-				onClick={() => change(index)}
+				onClick={() => change(index, item.fields.title)}
 				className={` ${
 					current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
 				}  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 bg-white`}>
@@ -1529,13 +1557,19 @@ function ExteriorColorType({ data, selectedFrame }) {
 	);
 }
 
-function TrimCategory({ data, selectedFrame }) {
+function TrimCategory({ dataT, windowTypeData }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	const [modalState, setModalState] = useState(false);
 	const infoData = useContext(InfoContext).infoData;
-	const [current, setCurrent] = useState([...Array(data.length)]);
 	const [toggleTrim, setToggleTrim] = useState(null);
+
+	let trimColors = windowTypeData.fields.trimColor;
+	// const [currentTitle, setCurrentTitle] = useState(null);
+
+	let data = dataT.filter((item) => trimColors[item.fields.title] != undefined);
+	const [current, setCurrent] = useState([...Array(data.length)]);
+
 	useEffect(() => {
 		initialize();
 	}, [selectedWindow]);
@@ -1557,10 +1591,11 @@ function TrimCategory({ data, selectedFrame }) {
 		setCurrent(newArray);
 	}
 
-	function change(num) {
+	function change(num, title) {
 		if (current[num]) {
 			return;
 		}
+		// setCurrentTitle(title);
 		let temp = [...current];
 		let price = selectedWindow.price;
 		for (let i = 0; i < temp.length; i++) {
@@ -1568,9 +1603,10 @@ function TrimCategory({ data, selectedFrame }) {
 				temp[i] = true;
 			} else if (temp[i] == true) {
 				temp[i] = undefined;
+				price -= trimColors[data[i].fields.title].price;
 			}
 		}
-		price += data[num].fields.price;
+		price += trimColors[title].price;
 		roomsDispatch({ type: 'windowAttributes', price: price });
 		roomsDispatch({ type: 'windowAttributes', trim: data[num].fields.title });
 		setCurrent(temp);
@@ -1580,7 +1616,7 @@ function TrimCategory({ data, selectedFrame }) {
 		let price = selectedWindow.price;
 		for (let i = 0; i < current.length; i++) {
 			if (current[i]) {
-				price -= data[i].fields.price;
+				price -= trimColors[data[i].fields.title].price;
 			}
 		}
 		setToggleTrim(toggle);
@@ -1608,12 +1644,12 @@ function TrimCategory({ data, selectedFrame }) {
 		</div>
 	);
 	const listItems = data.map((item, index) =>
-		item.fields.availability ? (
+		trimColors[item.fields.title].availability ? (
 			<motion.div
 				initial={{ opacity: 0 }}
 				whileInView={{ opacity: 1 }}
 				key={index}
-				onClick={() => change(index)}
+				onClick={() => change(index, item.fields.title)}
 				className={` ${
 					current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
 				}  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 bg-white`}>
@@ -1708,13 +1744,18 @@ function TrimCategory({ data, selectedFrame }) {
 	);
 }
 
-function GrilleCategory({ data, selectedFrame }) {
+function GrilleCategory({ dataT, windowTypeData }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	const [modalState, setModalState] = useState(false);
 	const infoData = useContext(InfoContext).infoData;
-	const [current, setCurrent] = useState([...Array(data.length)]);
 	const [toggleGrille, setToggleGrille] = useState(null);
+
+	let grilleColors = windowTypeData.fields.grilleColor;
+	let data = dataT.filter((items) => grilleColors[items.fields.title] != undefined);
+
+	const [current, setCurrent] = useState([...Array(data.length)]);
+
 	useEffect(() => {
 		initialize();
 	}, [selectedWindow]);
@@ -1736,7 +1777,7 @@ function GrilleCategory({ data, selectedFrame }) {
 		setCurrent(newArray);
 	}
 
-	function change(num) {
+	function change(num, title) {
 		if (current[num]) {
 			return;
 		}
@@ -1747,9 +1788,10 @@ function GrilleCategory({ data, selectedFrame }) {
 				temp[i] = true;
 			} else if (temp[i] == true) {
 				temp[i] = undefined;
+				price -= grilleColors[data[i].fields.title].price;
 			}
 		}
-		price += data[num].fields.price;
+		price += grilleColors[title].price;
 		roomsDispatch({ type: 'windowAttributes', price: price });
 		roomsDispatch({ type: 'windowAttributes', grille: data[num].fields.title });
 		setCurrent(temp);
@@ -1793,19 +1835,33 @@ function GrilleCategory({ data, selectedFrame }) {
 			<div className='mt-2'>{getInfo('Grille', infoData).description}</div>
 		</div>
 	);
-	const listItems = data.map((item, index) => (
-		<motion.div
-			initial={{ opacity: 0 }}
-			whileInView={{ opacity: 1 }}
-			key={index}
-			onClick={() => change(index)}
-			className={` ${
-				current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
-			}  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 bg-white`}>
-			<img className='h-24' src={item.fields.image.fields.file.url} />
-			<div className='text-textPrimary text-center leading-tight'>{item.fields.title}</div>
-		</motion.div>
-	));
+	const listItems = data.map((item, index) =>
+		grilleColors[item.fields.title].availability ? (
+			<motion.div
+				initial={{ opacity: 0 }}
+				whileInView={{ opacity: 1 }}
+				key={index}
+				onClick={() => change(index, item.fields.title)}
+				className={` ${
+					current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
+				}  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 bg-white`}>
+				<img className='h-24' src={item.fields.image.fields.file.url} />
+				<div className='text-textPrimary text-center leading-tight'>{item.fields.title}</div>
+			</motion.div>
+		) : (
+			<motion.div
+				initial={{ opacity: 0 }}
+				whileInView={{ opacity: 1 }}
+				key={index}
+				className={` 
+			  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 opacity-50 bg-gray-200`}>
+				<div className='text-sm text-textPrimary font-bold'>Unavailable</div>
+
+				<img className='h-24' src={item.fields.image.fields.file.url} />
+				<div className='text-textPrimary text-center '>{item.fields.title}</div>
+			</motion.div>
+		)
+	);
 
 	return (
 		<>
@@ -1893,7 +1949,6 @@ function ScreenCategory({ data }) {
 
 	function initialize() {
 		if (current[0] == undefined) return;
-		console.log(current);
 		const temp = [false, false];
 		if (selectedWindow.screen == true) temp[1] = true;
 		else temp[0] = true;
@@ -1971,14 +2026,16 @@ function ScreenCategory({ data }) {
 	);
 }
 
-function InteriorColorType({ data, selectedFrame }) {
+function InteriorColorType({ dataT, windowTypeData }) {
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
 	const roomsDispatch = useContext(QuoteRoomsContext).roomsDispatch;
 	const infoData = useContext(InfoContext).infoData;
-
-	const [current, setCurrent] = useState([...Array(data.length)]);
 	const [previousIndex, setPreviousIndex] = useState(null);
+
 	const [modalState, setModalState] = useState(false);
+	let interiorColors = windowTypeData.fields.interiorColor;
+	let data = dataT.filter((item) => interiorColors[item.fields.title] != undefined);
+	const [current, setCurrent] = useState([...Array(data.length)]);
 
 	useEffect(() => {
 		initialize();
@@ -1997,7 +2054,7 @@ function InteriorColorType({ data, selectedFrame }) {
 		setCurrent(newArray);
 	}
 
-	function change(num) {
+	function change(num, title) {
 		if (current[num]) {
 			return;
 		}
@@ -2008,12 +2065,12 @@ function InteriorColorType({ data, selectedFrame }) {
 			if (num == i) {
 				temp[i] = true;
 			} else if (temp[i] == true) {
-				price -= data[i].fields.price;
+				price -= interiorColors[data[i].fields.title].price;
 				temp[i] = undefined;
 			}
 		}
 
-		price += data[num].fields.price;
+		price += interiorColors[title].price;
 		roomsDispatch({ type: 'windowAttributes', price: price });
 
 		roomsDispatch({ type: 'windowAttributes', interior: data[num].fields.title });
@@ -2029,12 +2086,12 @@ function InteriorColorType({ data, selectedFrame }) {
 		</div>
 	);
 	const listItems = data.map((item, index) =>
-		item.fields.availability ? (
+		interiorColors[item.fields.title].availability ? (
 			<motion.div
 				initial={{ opacity: 0 }}
 				whileInView={{ opacity: 1 }}
 				key={index}
-				onClick={() => change(index)}
+				onClick={() => change(index, item.fields.title)}
 				className={` ${
 					current[index] ? 'selected ' : 'hover:drop-shadow-xl cursor-pointer'
 				}  transition border-solid border-2 hover: border-gray-400 flex flex-col items-center justify-center h-40 w-32 p-2 bg-white`}>
@@ -2055,6 +2112,7 @@ function InteriorColorType({ data, selectedFrame }) {
 			</motion.div>
 		)
 	);
+
 	return (
 		<>
 			<ItemsModal openState={[modalState, setModalState]} title={title} body={body}></ItemsModal>
@@ -2591,7 +2649,6 @@ export default function Quote() {
 		(async () => {
 			const space = await userClient.getSpace('dd68j6yxui75');
 			const env = await space.getEnvironment('master');
-			console.log('env', env);
 			try {
 				// env.createEntry('testUser', contentfulData);
 				const asset = await env.createAsset({
@@ -2618,10 +2675,8 @@ export default function Quote() {
 
 				// Retrieve the URL of the published Asset
 				const assetUrl = `https:${asset.fields.file['en-US'].url}`;
-				console.log('PDF uploaded to Contentful:', assetUrl);
-				console.log('SUCCESS');
 			} catch (error) {
-				console.log(error);
+				// console.log(error);
 			}
 		})();
 		// const space = userClient.getSpace('dd68j6yxui75');
@@ -2639,6 +2694,7 @@ export default function Quote() {
 		'infoButton',
 		'quoteGrilleColor',
 		'quoteScreen',
+		'windowTypes',
 	];
 
 	const selectedWindow = useContext(QuoteRoomsContext).selectedWindow;
@@ -2658,11 +2714,11 @@ export default function Quote() {
 				const res = await client.getEntries({ content_type: names[i] });
 				temp.push(res.items);
 			}
-
+			console.log(temp);
 			setData(temp);
 			setInfoData(temp[7]);
 		} catch (error) {
-			console.log(error);
+			// console.log(error);
 		}
 	}, []);
 	let initialized = false;
@@ -2689,7 +2745,6 @@ export default function Quote() {
 	 *  Solution Link: https://stackoverflow.com/questions/43441856/how-to-scroll-to-an-element
 	 *
 	 */
-	const interiorRef = useRef(null);
 
 	const [availableFrameTypes, setAvailableFrameTypes] = useState({
 		fiberglass: true,
@@ -2700,6 +2755,14 @@ export default function Quote() {
 	const changeTransitionMode = () => {
 		setTransitionMode(mode);
 	};
+
+	const [windowTypeData, setWindowTypeData] = useState(null);
+
+	useEffect(() => {
+		if (data[10] && selectedWindow.type) {
+			setWindowTypeData(data[10].filter((item) => item.fields.type == selectedWindow.type)[0]);
+		}
+	}, [selectedWindow.type]);
 
 	return (
 		<div id='' className='relative min-h-screen  '>
@@ -2714,17 +2777,6 @@ export default function Quote() {
 						Build your window by selecting options below, and we'll give you a price estimate of the
 						job!
 					</div>
-				</div>
-				<div className='hidden'>
-					<button
-						type='button'
-						onClick={() => {
-							// createPDF();
-						}}
-						className='p-4 bg-red-200'>
-						Test Function
-					</button>
-					<PDFGenerator></PDFGenerator>
 				</div>
 			</div>
 
@@ -2782,27 +2834,31 @@ export default function Quote() {
 								leave='transition-opacity duration-150'
 								leaveFrom='opacity-100'
 								leaveTo='opacity-0'>
-								<CustomWindowType
+								{/* <CustomWindowType
 									data={data[4]}
-									setAvailableFrameTypes={setAvailableFrameTypes}></CustomWindowType>
+									setAvailableFrameTypes={setAvailableFrameTypes}></CustomWindowType> */}
 							</Transition>
-							<FrameType availableFrameTypes={availableFrameTypes} data={data[1]}></FrameType>
+							<FrameType
+								availableFrameTypes={availableFrameTypes}
+								windowTypeData={windowTypeData}
+								data={data[1]}></FrameType>
 
 							{selectedFrame != null && selectedWindow.type != null ? (
 								<div>
 									<ProjectPhoto></ProjectPhoto>
-
-									<InteriorColorType
-										ref={interiorRef}
-										data={data[2]}
-										selectedFrame={selectedFrame}></InteriorColorType>
 									<ExteriorColorType
-										data={data[3]}
-										selectedFrame={selectedFrame}></ExteriorColorType>
-									<TrimCategory data={data[5]} selectedFrame={selectedFrame}></TrimCategory>
-									<GrilleCategory data={data[8]} selectedFrame={selectedFrame}></GrilleCategory>
-									<ScreenCategory data={data[9]}></ScreenCategory>
-									<Measurements data={data[6]}></Measurements>
+										dataT={data[3]}
+										windowTypeData={windowTypeData}></ExteriorColorType>
+									<InteriorColorType
+										dataT={data[2]}
+										windowTypeData={windowTypeData}></InteriorColorType>
+
+									<TrimCategory dataT={data[5]} windowTypeData={windowTypeData}></TrimCategory>
+									<GrilleCategory dataT={data[8]} windowTypeData={windowTypeData}></GrilleCategory>
+									{windowTypeData.fields.screen.Screen.availability && (
+										<ScreenCategory data={data[9]} windowTypeData={windowTypeData}></ScreenCategory>
+									)}
+									<Measurements windowTypeData={windowTypeData}></Measurements>
 
 									<div className='border p-2 flex flex-col justify-center border-gray-500 bg-white'>
 										<div className='font-bold text-textPrimary text-center  text-2xl '>

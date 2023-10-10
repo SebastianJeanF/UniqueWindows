@@ -1,3 +1,4 @@
+import * as React from 'react';
 import img2 from '../assets/custom/IMG_7335.jpg';
 import img3 from '../assets/contactUs.jpg';
 import Carousel from '../components/SwiperCarousel.jsx';
@@ -11,31 +12,31 @@ function Home() {
 		hidden: { opacity: 0, transform: 'translateX(calc(-10vw))' },
 		show: {
 			opacity: 1,
-			transform: 0,
-			transition: { type: 'spring', duration: 1, delayChildren: 0.5 },
+			transform: 'translateX(0)',
+			transition: { duration: 1 },
 		},
 	};
 	const title = {
 		hidden: { opacity: 0, transform: 'translateX(calc(5vw))' },
-		show: { opacity: 1, transform: 0, transition: { duration: 0.5 } },
+		show: { opacity: 1, transform: 'translateX(0)', transition: { duration: 0.5 } },
 	};
 
 	const container2 = {
 		hidden: { opacity: 0, transform: 'translateX(calc(10vw))' },
 		show: {
 			opacity: 1,
-			transform: 0,
+			transform: 'translateX(0)',
 			transition: { type: 'spring', duration: 1, delayChildren: 0.5 },
 		},
 	};
 	const title2 = {
 		hidden: { opacity: 0, transform: 'translateX(calc(-5vw))' },
-		show: { opacity: 1, transform: 0, transition: { duration: 0.5 } },
+		show: { opacity: 1, transform: 'translateX(0)', transition: { duration: 0.5 } },
 	};
 
 	return (
 		<div>
-			<Carousel></Carousel>
+			<Carousel />
 
 			<section id='cta' className='bg-primary'>
 				<div className='container flex flex-col items-center justify-between px-6 py-10 mx-auto space-y-12 md:py-8 md:flex-row md:space-y-0'>
@@ -44,10 +45,10 @@ function Home() {
 					</div>
 					<div>
 						<div id='container' className='bg-white rounded-full'>
-							<button class='learn-more '>
-								<span class='circle' aria-hidden='true'>
-									<span class='icon arrow'></span>
-								</span>
+							<button className='learn-more '>
+								<div className='circle' aria-hidden='true'>
+									<span className='icon arrow' />
+								</div>
 
 								<CustomLink className='button-text' to='/quote'>
 									Get Quote
@@ -60,14 +61,14 @@ function Home() {
 
 			<section className=''>
 				<div className=' mx-auto'>
-					<div className='py-16 rounded '>
+					<div className='py-24 rounded '>
 						<div className='container md:flex m-auto px-6 md:px-12 xl:px-6'>
 							<div className='mx-auto  space-y-6 md:space-y-0 flex flex-col just lg:flex-row gap-6  lg:gap-12'>
 								<motion.div
 									variants={container}
 									initial='hidden'
 									whileInView='show'
-									className='text-textPrimary max-w-xl'>
+									className='text-textPrimary '>
 									<motion.div variants={title}>
 										<TbWindow className='text-gray-800 h-10 w-10 mx-auto'></TbWindow>
 										<div className='text-2xl text-center font-bold md:text-4xl text-gray-800'>
@@ -90,20 +91,20 @@ function Home() {
 										</CustomLink>
 									</div>
 								</motion.div>
-								<motion.img
+								{/* <motion.img
 									initial={{ transform: 'translateX(calc(10vw))', opacity: 0 }}
 									whileInView={{
-										transform: 0,
+										transform: 'translateX(0)',
 										opacity: 1,
 										transition: { type: 'spring', duration: 0.75 },
 									}}
 									className='contactUs md:max-w-xl'
 									src={img2}
-								/>
+								/> */}
 							</div>
 						</div>
 					</div>
-					<div style={{ backgroundColor: '#F7F7F7' }} className='md:m-0 mt-4 py-16 overflow-hidden'>
+					<div style={{ backgroundColor: '#EEEEEE' }} className='md:m-0 mt-4 py-24 overflow-hidden'>
 						<div className=' container  m-auto md:flex px-6 text-gray-600 md:px-12 xl:px-6'>
 							<div className=' space-y-6 md:space-y-0 flex flex-col lg:flex-row-reverse gap-6  lg:gap-12'>
 								<motion.div
@@ -138,16 +139,16 @@ function Home() {
 										soon.
 									</div>
 								</motion.div>
-								<motion.img
+								{/* <motion.img
 									initial={{ transform: 'translateX(calc(-10vw))', opacity: 0 }}
 									whileInView={{
-										transform: 0,
+										transform: 'translateX(0)',
 										opacity: 1,
 										transition: { type: 'Inertia', duration: 0.5 },
 									}}
 									className='contactUs '
 									src={img3}
-								/>
+								/> */}
 							</div>
 						</div>
 					</div>

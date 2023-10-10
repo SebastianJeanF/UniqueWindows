@@ -63,7 +63,6 @@ function Context({ children }) {
 				return;
 			case 'editRoom':
 				selectedRoom.name = action.name;
-				console.log('editRoom reducer triggered');
 				return;
 			case 'addWindow': {
 				if (selectedRoom.selectedWindowId == NULL_ID) {
@@ -72,7 +71,6 @@ function Context({ children }) {
 				}
 				selectedRoom.windows.push(windowTemplate);
 				selectedRoom.selectedWindowId = selectedRoom.windows.length - 1;
-				console.log('addWindow reducer triggered');
 				return;
 			}
 			case 'removeRoom': {
@@ -90,7 +88,6 @@ function Context({ children }) {
 				};
 				draft.rooms.push(newRoom);
 				draft.selectedRoomId++;
-				console.log('addRoom reducer triggered');
 				return;
 			}
 			case 'windowAttributes': {
@@ -134,7 +131,8 @@ function Context({ children }) {
 					selectedWindow.grille = action.grille;
 				} else if (action.screen) {
 					selectedWindow.screen = action.screen;
-				} else console.log('ERROR in windowAttributes reducer');
+				}
+				// else console.log('ERROR in windowAttributes reducer');
 				return;
 			}
 			case 'shiftWindowLeft': {
@@ -151,9 +149,9 @@ function Context({ children }) {
 				return;
 			}
 			case 'removeWindow': {
-				console.log('selectedRoom.selectedWindowId: ', selectedRoom.selectedWindowId);
+				// console.log('selectedRoom.selectedWindowId: ', selectedRoom.selectedWindowId);
 				selectedRoom.windows.splice(selectedRoom.selectedWindowId, 1);
-				console.log(JSON.stringify(selectedRoom.windows));
+				// console.log(JSON.stringify(selectedRoom.windows));
 
 				if (selectedRoom.selectedWindowId == 0 && selectedRoom.windows.length == 0) {
 					selectedRoom.selectedWindowId = NULL_ID;
@@ -161,7 +159,7 @@ function Context({ children }) {
 				} else if (selectedRoom.selectedWindowId == selectedRoom.windows.length) {
 					selectedRoom.selectedWindowId--;
 				}
-				console.log('removeWindow reducer triggered');
+				// console.log('removeWindow reducer triggered');
 				return;
 			}
 			case 'changeRoomPrice': {
@@ -175,10 +173,10 @@ function Context({ children }) {
 			}
 			case 'changeCustomTypePhotoReference': {
 				selectedWindow.customTypePhotoReference = action.files;
-				console.log(
-					'selectedWindow.customTypePhotoReference: ',
-					selectedWindow.customTypePhotoReference
-				);
+				// console.log(
+				// 	'selectedWindow.customTypePhotoReference: ',
+				// 	selectedWindow.customTypePhotoReference
+				// );
 				return;
 			}
 			case 'changePhoto': {
